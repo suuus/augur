@@ -22,14 +22,14 @@ setup(
     description="Augur Worker that collects data from the Gerrit Change Request API",
     packages=find_packages(exclude=('tests',)),
     install_requires=[
-        'flask', 
-        'requests', 
-        'psycopg2-binary', 
+        'flask',
+        'requests',
+        'psycopg2-binary',
         'click'
     ],
     entry_points={
         'console_scripts': [
-            'gerrit_merge_request_worker_start=workers.gerrit_merge_request_worker.runtime:main',
+            'gerrit_worker_start=workers.gerrit_worker.runtime:main',
         ],
     },
     classifiers=[
