@@ -385,8 +385,7 @@ class GerritChangeRequestWorker(Worker):
     def _get_pk_source_prs(self):
 
         pr_url = (
-            "https://api.github.com/repos/{owner}/{repo}/pulls?state=all&"
-            "direction=asc&per_page=100&page={}"
+            "https://gerrit.automotivelinux.org/gerrit/changes/?q=changes&no-limit"
         )
 
 ## Source columns in action_map may need to change to the ones in gerrit
