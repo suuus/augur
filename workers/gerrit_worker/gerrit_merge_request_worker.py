@@ -396,15 +396,13 @@ class GerritChangeRequestWorker(Worker):
                 'augur': ['pr_src_id']
             },
             'update': {
-                'source': ['state'],
+                'source': ['status'],
                 'augur': ['pr_src_state']
             }
         }
 
         source_prs = self.new_paginate_endpoint(
-            pr_url, action_map=pr_action_map, table=self.pull_requests_table,
-            where_clause=self.pull_requests_table.c.repo_id == self.repo_id
-        )
+            pr_url, action_map=pr_action_map, table=self.pull_requests_table)
 
         self.write_debug_data(source_prs, 'source_prs')
 
