@@ -1,14 +1,14 @@
 #SPDX-License-Identifier: MIT
 from flask import Flask, jsonify, request, Response
 import click, os, json, requests, logging
-from workers.pull_request_worker.pull_request_worker import GitHubPullRequestWorker
+from workers.pull_request_worker.gerrit_worker import GerritChangeRequestWorker
 from workers.util import create_server, WorkerGunicornApplication
 
 def main():
     """ Declares singular worker and creates the server and flask app that it will be running on
     """
     app = Flask(__name__)
-    app.worker = GitHubMergeRequestWorker()
+    app.worker = GerritChangeRequestWorker()
 
     create_server(app)
     WorkerGunicornApplication(app).run()
