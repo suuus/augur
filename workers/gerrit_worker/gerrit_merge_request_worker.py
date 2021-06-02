@@ -49,7 +49,7 @@ class GerritChangeRequestWorker(Worker):
         self.deep_collection = True
 
 ## TODO: You'll need a new platform ID in the platform table
-        self.platform_id = 25150 # GitHub
+        self.platform_id = 25152 # GitHub
 
         # Run the general worker initialization
         super().__init__(worker_type, config, given, models, data_tables, operations_tables)
@@ -60,7 +60,7 @@ class GerritChangeRequestWorker(Worker):
         self.tool_version = '0.0.1'
         self.data_source = 'Gerrit API'
 
-## Paginater may work because pagination is pagination. 
+## Paginater may work because pagination is pagination.
     def graphql_paginate(self, query, data_subjects, before_parameters=None):
         """ Paginate a GitHub GraphQL query backwards
 
@@ -324,7 +324,7 @@ class GerritChangeRequestWorker(Worker):
         self.register_task_completion(task_info, self.repo_id, 'pull_request_files')
 
 
-## If Commits are returned for each merge request, this will work. 
+## If Commits are returned for each merge request, this will work.
     def pull_request_commits_model(self, task_info, repo_id):
         """ Queries the commits related to each pull request already inserted in the db """
 
@@ -506,7 +506,7 @@ class GerritChangeRequestWorker(Worker):
         """
 
 
-## We changed this all to `git_url` at teh top ... you can reverse that choice just to get it working, and we clean it up later. 
+## We changed this all to `git_url` at teh top ... you can reverse that choice just to get it working, and we clean it up later.
         github_url = self.task_info['given']['github_url']
 
         # self.query_github_contributors(self.task_info, self.repo_id)
@@ -526,7 +526,7 @@ class GerritChangeRequestWorker(Worker):
 
         self.register_task_completion(self.task_info, self.repo_id, 'pull_requests')
 
-## Comment out whole method if not available. 
+## Comment out whole method if not available.
     def pull_request_comments_model(self):
 
         comments_url = (
@@ -604,7 +604,7 @@ class GerritChangeRequestWorker(Worker):
 
         self.bulk_insert(self.pull_request_message_ref_table, insert=pr_message_ref_insert)
 
-## This is the one thing we need for sure. 
+## This is the one thing we need for sure.
 
     def pull_request_events_model(self, pk_source_prs=[]):
 
@@ -668,7 +668,7 @@ class GerritChangeRequestWorker(Worker):
         self.bulk_insert(self.pull_request_events_table, insert=pr_events_insert)
 
 
-## May be available. I think data is there. But via API? 
+## May be available. I think data is there. But via API?
     def pull_request_reviews_model(self, pk_source_prs=[]):
 
         if not pk_source_prs:
@@ -862,7 +862,7 @@ class GerritChangeRequestWorker(Worker):
         )
 
 
-### If you could comment this so we knew what the fuck it did, that would be great. :) 
+### If you could comment this so we knew what the fuck it did, that would be great. :)
     def pull_request_nested_data_model(self, pk_source_prs=[]):
 
         if not pk_source_prs:
