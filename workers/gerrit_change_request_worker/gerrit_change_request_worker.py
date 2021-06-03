@@ -455,7 +455,7 @@ class GerritChangeRequestWorker(Worker):
         return pk_source_prs
 
 ## Bsic pull request model
-    def change_request_model(self, entry_info, repo_id):
+    def change_requests_model(self, entry_info, repo_id):
         """Pull Request data collection function. Query GitHub API for PhubRs.
 
         :param entry_info: A dictionary consisiting of 'git_url' and 'repo_id'
@@ -464,17 +464,17 @@ class GerritChangeRequestWorker(Worker):
 
 
 ## We changed this all to `git_url` at teh top ... you can reverse that choice just to get it working, and we clean it up later.
-        github_url = self.task_info['given']['github_url']
+        git_url = self.task_info['given']['git_url']
 
         # self.query_github_contributors(self.task_info, self.repo_id)
 
         self.logger.info("Beginning collection of Pull Requests...\n")
-        self.logger.info(f"Repo ID: {self.repo_id}, Git URL: {github_url}\n")
+        self.logger.info(f"Repo ID: {self.repo_id}, Git URL: {git_url}\n")
 
         pk_source_prs = self._get_pk_source_prs()
 
         self.write_debug_data(pk_source_prs, 'pk_source_prs')
-        # 
+        #
         # if pk_source_prs:
         #     self.pull_request_comments_model()
         #     self.pull_request_events_model(pk_source_prs)

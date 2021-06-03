@@ -1,7 +1,7 @@
 #SPDX-License-Identifier: MIT
 from flask import Flask, jsonify, request, Response
 import click, os, json, requests, logging
-from workers.pull_request_worker.gerrit_worker import GerritChangeRequestWorker
+from workers.gerrit_change_request_worker.gerrit_change_request_worker import GerritChangeRequestWorker
 from workers.util import create_server, WorkerGunicornApplication
 
 def main():

@@ -13,7 +13,7 @@ def read(filename):
         return re.sub(text_type(r':[a-z]+:`~?(.*?)`'), text_type(r'``\1``'), fd.read())
 
 setup(
-    name="gerrit_merge_request_worker",
+    name="gerrit_change_request_worker",
     version="1.0.0",
     url="https://github.com/chaoss/augur",
     license='MIT',
@@ -29,7 +29,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'gerrit_worker_start=workers.gerrit_worker.runtime:main',
+            'gerrit_change_request_worker_start=workers.gerrit_change_request_worker.runtime:main',
         ],
     },
     classifiers=[
