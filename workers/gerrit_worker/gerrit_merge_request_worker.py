@@ -32,7 +32,7 @@ class GerritChangeRequestWorker(Worker):
 
         # Define what this worker can be given and know how to interpret
         given = [['git_url']]
-        models = ['change_requests', 'change_request_commits', 'change_request_files']
+        models = ['change_request', 'change_request_commits', 'change_request_files']
 
         # Define the tables needed to insert, update, or delete on
         data_tables = ['contributors', 'pull_requests',
@@ -455,7 +455,7 @@ class GerritChangeRequestWorker(Worker):
         return pk_source_prs
 
 ## Bsic pull request model
-    def pull_requests_model(self, entry_info, repo_id):
+    def change_request_model(self, entry_info, repo_id):
         """Pull Request data collection function. Query GitHub API for PhubRs.
 
         :param entry_info: A dictionary consisiting of 'git_url' and 'repo_id'
