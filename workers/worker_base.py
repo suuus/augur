@@ -363,7 +363,7 @@ class Worker():
                 self.logger.info("Calling model method {}_model".format(message['models'][0]))
                 self.task_info = message
                 self.repo_id = repo_id
-                self.owner, self.repo = self.get_owner_repo(message['given']['github_url'])
+                self.owner, self.repo = self.get_owner_repo(list(message['given'].values())[0])
                 model_method(message, repo_id)
             except Exception as e: # this could be a custom exception, might make things easier
                 self.register_task_failure(message, repo_id, e)
@@ -1706,7 +1706,9 @@ class Worker():
             num_attempts = 0
             success = False
             while num_attempts < 10:
-                self.logger.info(f"Hitting endpoint: {url.format(page_number)}...\n")
+                self.logger.info("hitting an endpiont")
+                #    f"Hitting endpoint: ...\n"
+                #    f"{url.format(page_number)} on page number. \n")
                 try:
                     response = requests.get(url=url.format(page_number), headers=self.headers)
                 except TimeoutError as e:
