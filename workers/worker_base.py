@@ -1870,18 +1870,27 @@ class Worker():
                     if page_data['message'] == "Bad credentials":
                         self.update_rate_limit(response, bad_credentials=True, platform=platform)
                 elif type(page_data) == str:
-                    self.logger.info(f"Warning! page_data was string: {page_data}\n")
-                    if "<!DOCTYPE html>" in page_data:
-                        self.logger.info("HTML was returned, trying again...\n")
-                    elif len(page_data) == 0:
-                        self.logger.warning("Empty string, trying again...\n")
+                    if platform == "Gerrit":
+                        page_data = ''.join(page_data.split('\n')[1:])
+                        page_data = json.loads(page_data)
+                        for entry in page_data:
+                            entry['gerrit_id'] = hashlib.sha256(entry['id'].encode())
+                        self.logger.info(f"Page data: {page_data}")
+                        success = True
+                        break
                     else:
-                        try:
-                            page_data = json.loads(page_data)
-                            success = True
-                            break
-                        except:
-                            pass
+                        self.logger.info(f"Warning! page_data was string: {page_data}\n")
+                        if "<!DOCTYPE html>" in page_data:
+                            self.logger.info("HTML was returned, trying again...\n")
+                        elif len(page_data) == 0:
+                            self.logger.warning("Empty string, trying again...\n")
+                        else:
+                            try:
+                                page_data = json.loads(page_data)
+                                success = True
+                                break
+                            except:
+                                pass
                 num_attempts += 1
             if not success:
                 break
