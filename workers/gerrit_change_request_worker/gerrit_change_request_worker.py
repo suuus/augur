@@ -392,7 +392,7 @@ class GerritChangeRequestWorker(Worker):
 
         pr_action_map = {
             'insert': {
-                'source': ['id'],
+                'source': ['gerrit_id'],
                 'augur': ['pr_src_id']
             },
             'update': {
@@ -401,8 +401,8 @@ class GerritChangeRequestWorker(Worker):
             }
         }
 
-        source_prs = self.new_paginate_endpoint(
-            pr_url, action_map=pr_action_map, table=self.pull_requests_table)
+        source_prs = self.paginate_endpoint(
+            pr_url, action_map=pr_action_map, table=self.pull_requests_table, platform="Gerrit")
 
         self.write_debug_data(source_prs, 'source_prs')
 
@@ -413,12 +413,11 @@ class GerritChangeRequestWorker(Worker):
 
         prs_insert = [
             {
-                'pr_src_id': pr['id'],
+                'pr_src_id': pr['gerrit_id'],
                 'pr_src_state': pr['status'],
                 'pr_created_at': pr['created'],
                 'pr_updated_at': pr['updated'],
                 'pr_merged_at': pr['submitted'],
-                'platform_id': 25152,
                 'tool_source': self.tool_source,
                 'tool_version': self.tool_version,
                 'data_source': 'Gerrit API'
