@@ -418,7 +418,6 @@ class GerritChangeRequestWorker(Worker):
                 'pr_created_at': pr['created'],
                 'pr_updated_at': pr['updated'],
                 'pr_merged_at': pr['submitted'],
-                'platform_id': 25152,
                 'tool_source': self.tool_source,
                 'tool_version': self.tool_version,
                 'data_source': 'Gerrit API'
