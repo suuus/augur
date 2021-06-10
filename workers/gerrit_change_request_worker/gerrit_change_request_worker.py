@@ -480,7 +480,7 @@ class GerritChangeRequestWorker(Worker):
         #     self.pull_request_reviews_model(pk_source_prs)
         #     self.pull_request_nested_data_model(pk_source_prs)
 
-        self.register_task_completion(self.task_info, self.repo_id, 'pull_requests')
+        self.register_task_completion(self.task_info, self.repo_id, 'change_requests')
 
 ## Comment out whole method if not available.
 #     def pull_request_comments_model(self):
