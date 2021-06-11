@@ -401,14 +401,14 @@ class GerritChangeRequestWorker(Worker):
             }
         }
 
-        source_prs = self.new_paginate_endpoint(
-            pr_url, action_map=pr_action_map, table=self.pull_requests_table)
+        source_prs = self.paginate_endpoint(
+            pr_url, action_map=pr_action_map, table=self.pull_requests_table, platform="gerrit")
 
         self.write_debug_data(source_prs, 'source_prs')
 
         if len(source_prs['all']) == 0:
             self.logger.info("There are no prs for this repository.\n")
-            self.register_task_completion(self.task_info, self.repo_id, 'pull_requests')
+            self.register_task_completion(self.task_info, self.repo_id, 'change_requests')
             return
 
         prs_insert = [
@@ -437,7 +437,7 @@ class GerritChangeRequestWorker(Worker):
             self.logger.info(
                 "There are no prs to update, insert, or collect nested information for.\n"
             )
-            self.register_task_completion(self.task_info, self.repo_id, 'pull_requests')
+            self.register_task_completion(self.task_info, self.repo_id, 'change_requests')
             return
 
         if self.deep_collection:

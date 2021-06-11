@@ -1870,18 +1870,28 @@ class Worker():
                     if page_data['message'] == "Bad credentials":
                         self.update_rate_limit(response, bad_credentials=True, platform=platform)
                 elif type(page_data) == str:
-                    self.logger.info(f"Warning! page_data was string: {page_data}\n")
-                    if "<!DOCTYPE html>" in page_data:
-                        self.logger.info("HTML was returned, trying again...\n")
-                    elif len(page_data) == 0:
-                        self.logger.warning("Empty string, trying again...\n")
-                    else:
+                    if platform == "gerrit":
+                        #remove first line from response if it is a string from Gerrit
+                        page_data = ''.join(page_data.split('\n')[1:])
                         try:
                             page_data = json.loads(page_data)
                             success = True
                             break
                         except:
-                            pass
+                            self.logger.info(f"Could not parse gerrit json response after removing first line: {page_data}")
+                    else:
+                        self.logger.info(f"Warning! page_data was string: {page_data}\n")
+                        if "<!DOCTYPE html>" in page_data:
+                            self.logger.info("HTML was returned, trying again...\n")
+                        elif len(page_data) == 0:
+                            self.logger.warning("Empty string, trying again...\n")
+                        else:
+                            try:
+                                page_data = json.loads(page_data)
+                                success = True
+                                break
+                            except:
+                                pass
                 num_attempts += 1
             if not success:
                 break
