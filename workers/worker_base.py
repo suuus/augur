@@ -1870,7 +1870,6 @@ class Worker():
                     if page_data['message'] == "Bad credentials":
                         self.update_rate_limit(response, bad_credentials=True, platform=platform)
                 elif type(page_data) == str:
-<<<<<<< HEAD
                     if platform == "gerrit":
                         #remove first line from response if it is a string from Gerrit
                         page_data = ''.join(page_data.split('\n')[1:])
@@ -1880,16 +1879,6 @@ class Worker():
                             break
                         except:
                             self.logger.info(f"Could not parse gerrit json response after removing first line: {page_data}")
-=======
-                    if platform == "Gerrit":
-                        page_data = ''.join(page_data.split('\n')[1:])
-                        page_data = json.loads(page_data)
-                        for entry in page_data:
-                            entry['gerrit_id'] = hashlib.sha256(entry['id'].encode())
-                        self.logger.info(f"Page data: {page_data}")
-                        success = True
-                        break
->>>>>>> 8b482cb8a3304c38c1b8a13fb79706bd96487918
                     else:
                         self.logger.info(f"Warning! page_data was string: {page_data}\n")
                         if "<!DOCTYPE html>" in page_data:

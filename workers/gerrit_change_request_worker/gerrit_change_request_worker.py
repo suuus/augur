@@ -35,7 +35,7 @@ class GerritChangeRequestWorker(Worker):
         models = ['change_requests']
 
         # Define the tables needed to insert, update, or delete on
-        data_tables = ['contributors', 'pull_requests',
+        data_tables = ['change_requests', 'contributors', 'pull_requests',
             'pull_request_assignees', 'pull_request_events', 'pull_request_labels',
             'pull_request_message_ref', 'pull_request_meta', 'pull_request_repo',
             'pull_request_reviewers', 'pull_request_teams', 'message', 'pull_request_commits',
@@ -392,21 +392,17 @@ class GerritChangeRequestWorker(Worker):
 
         pr_action_map = {
             'insert': {
-                'source': ['gerrit_id'],
-                'augur': ['pr_src_id']
+                'source': ['id'],
+                'augur': ['change_src_id']
             },
             'update': {
                 'source': ['status'],
-                'augur': ['pr_src_state']
+                'augur': ['change_src_state']
             }
         }
 
         source_prs = self.paginate_endpoint(
-<<<<<<< HEAD
-            pr_url, action_map=pr_action_map, table=self.pull_requests_table, platform="gerrit")
-=======
-            pr_url, action_map=pr_action_map, table=self.pull_requests_table, platform="Gerrit")
->>>>>>> 8b482cb8a3304c38c1b8a13fb79706bd96487918
+            pr_url, action_map=pr_action_map, table=self.change_requests_table, platform="gerrit")
 
         self.write_debug_data(source_prs, 'source_prs')
 
@@ -417,11 +413,11 @@ class GerritChangeRequestWorker(Worker):
 
         prs_insert = [
             {
-                'pr_src_id': pr['gerrit_id'],
-                'pr_src_state': pr['status'],
-                'pr_created_at': pr['created'],
-                'pr_updated_at': pr['updated'],
-                'pr_merged_at': pr['submitted'],
+                'change_src_id': pr['id'],
+                'change_src_state': pr['status'],
+                'change_created_at': pr['created'],
+                'change_updated_at': pr['updated'],
+                'change_merged_at': pr['submitted'] if 'submitted' in pr.keys() else None,
                 'tool_source': self.tool_source,
                 'tool_version': self.tool_version,
                 'data_source': 'Gerrit API'
@@ -430,32 +426,12 @@ class GerritChangeRequestWorker(Worker):
 
         if len(source_prs['insert']) > 0 or len(source_prs['update']) > 0:
             pr_insert_result, pr_update_result = self.bulk_insert(
-                self.pull_requests_table,
+                self.change_requests_table,
                 update=source_prs['update'], unique_columns=pr_action_map['insert']['augur'],
                 insert=prs_insert, update_columns=pr_action_map['update']['augur']
             )
 
-            source_data = source_prs['insert'] + source_prs['update']
-
-        elif not self.deep_collection:
-            self.logger.info(
-                "There are no prs to update, insert, or collect nested information for.\n"
-            )
-            self.register_task_completion(self.task_info, self.repo_id, 'change_requests')
-            return
-
-        if self.deep_collection:
-            source_data = source_prs['all']
-
-        # Merge source data to inserted data to have access to inserted primary keys
-
-        gh_merge_fields = ['id']
-        augur_merge_fields = ['pr_src_id']
-
-        pk_source_prs = self.enrich_data_primary_keys(source_data, self.pull_requests_table,
-            gh_merge_fields, augur_merge_fields)
-
-        return pk_source_prs
+        return
 
 ## Bsic pull request model
     def change_requests_model(self, entry_info, repo_id):
@@ -474,10 +450,8 @@ class GerritChangeRequestWorker(Worker):
         self.logger.info("Beginning collection of Pull Requests...\n")
         self.logger.info(f"Repo ID: {self.repo_id}, Git URL: {git_url}\n")
 
-        pk_source_prs = self._get_pk_source_prs()
+        self._get_pk_source_prs()
 
-        self.write_debug_data(pk_source_prs, 'pk_source_prs')
-        #
         # if pk_source_prs:
         #     self.pull_request_comments_model()
         #     self.pull_request_events_model(pk_source_prs)
