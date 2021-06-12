@@ -6,30 +6,31 @@ import logging
 from random import seed
 from random import randint
 # seed random number generator
-# DO NOT create a seed. 
+# DO NOT create a seed.
 # Actual randomness is generated without a seed
-# for this use case. 
+# for this use case.
 
 contributor_breadth_worker_p = randint(48000, 48500)
-facade_worker_p = randint(48501, 49000) 
-insight_worker_p = randint(49002, 49500) 
-metric_status_worker_p = randint(49501, 50000) 
-pull_request_worker_p = randint(50001, 50500) 
-repo_info_worker_p = randint(50501, 51000) 
-value_worker_p = randint(51002, 51500) 
-contributor_worker_p = randint(52000, 52500) 
-message_insights_worker_p = randint(53000, 53499) 
-pull_request_analysis_worker_p = randint(54000, 54500) 
-discourse_analysis_worker_p = randint(54500, 54999)  
-message_insights_worker_p = randint(55000, 55499) 
+facade_worker_p = randint(48501, 49000)
+insight_worker_p = randint(49002, 49500)
+metric_status_worker_p = randint(49501, 50000)
+pull_request_worker_p = randint(50001, 50500)
+repo_info_worker_p = randint(50501, 51000)
+value_worker_p = randint(51002, 51500)
+contributor_worker_p = randint(52000, 52500)
+message_insights_worker_p = randint(53000, 53499)
+pull_request_analysis_worker_p = randint(54000, 54500)
+discourse_analysis_worker_p = randint(54500, 54999)
+message_insights_worker_p = randint(55000, 55499)
 clustering_worker_p = randint(57000, 57499)
 github_worker_p = randint(57500, 58000)
 linux_badge_worker_p = randint(47000,47499)
 gitlab_issues_worker_p = randint(47500,47999)
 release_worker_p = randint(56000, 56499)
 gitlab_merge_request_worker_p = randint(56500, 56999)
-deps_worker_p = randint(58001, 58499) 
-main_port = randint(5001,5300) 
+deps_worker_p = randint(58001, 58499)
+gerrit_change_request_worker_p = randint(58500, 58999)
+main_port = randint(5001,5300)
 
 
 
@@ -91,7 +92,7 @@ default_config = {
                     ],
                     "model": "merge_requests",
                     "repo_group_id": 0
-                },                        
+                },
                 {
                     "all_focused": 1,
                     "delay": 150000,
@@ -101,7 +102,7 @@ default_config = {
                     "model": "merge_request_commits",
                     "repo_group_id": 0
                 },
-                        
+
                 {
                     "all_focused": 1,
                     "delay": 150000,
@@ -364,6 +365,11 @@ default_config = {
                 "deps_worker": {
                     "port": deps_worker_p,
                     "switch": 0,
+                    "workers": 1
+                },
+                "gerrit_change_request_worker": {
+                    "port": gerrit_change_request_worker_p,
+                    "switch": 1,
                     "workers": 1
                 }
         },
