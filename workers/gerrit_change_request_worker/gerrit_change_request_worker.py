@@ -447,7 +447,7 @@ class GerritChangeRequestWorker(Worker):
 
         # self.query_github_contributors(self.task_info, self.repo_id)
 
-        self.logger.info("Beginning collection of Pull Requests...\n")
+        self.logger.info("Beginning collection of Change Requests...\n")
         self.logger.info(f"Repo ID: {self.repo_id}, Git URL: {git_url}\n")
 
         self._get_pk_source_prs()
