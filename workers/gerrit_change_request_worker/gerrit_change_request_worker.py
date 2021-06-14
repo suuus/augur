@@ -431,7 +431,11 @@ class GerritChangeRequestWorker(Worker):
                 insert=prs_insert, update_columns=pr_action_map['update']['augur']
             )
 
-        return
+        self.change_ids = []
+        for pr in source_prs['insert']:
+            self.change_ids.append(pr['id'])
+
+        return source_prs
 
 ## Bsic pull request model
     def change_requests_model(self, entry_info, repo_id):
@@ -450,13 +454,13 @@ class GerritChangeRequestWorker(Worker):
         self.logger.info("Beginning collection of Change Requests...\n")
         self.logger.info(f"Repo ID: {self.repo_id}, Git URL: {git_url}\n")
 
-        self._get_pk_source_prs()
+        source_prs = self._get_pk_source_prs()
 
-        # if pk_source_prs:
-        #     self.pull_request_comments_model()
-        #     self.pull_request_events_model(pk_source_prs)
-        #     self.pull_request_reviews_model(pk_source_prs)
-        #     self.pull_request_nested_data_model(pk_source_prs)
+        if source_prs:
+            self.pull_request_comments_model()
+            # self.pull_request_events_model(pk_source_prs)
+            # self.pull_request_reviews_model(pk_source_prs)
+            # self.pull_request_nested_data_model(pk_source_prs)
 
         self.register_task_completion(self.task_info, self.repo_id, 'change_requests')
 
