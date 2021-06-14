@@ -435,6 +435,8 @@ class GerritChangeRequestWorker(Worker):
         for pr in source_prs['insert']:
             self.change_ids.append(pr['id'])
 
+        self.logger.info("Finished gathering change requests")
+
         return source_prs
 
 ## Bsic pull request model
@@ -456,8 +458,10 @@ class GerritChangeRequestWorker(Worker):
 
         source_prs = self._get_pk_source_prs()
 
+
+
         if source_prs:
-            self.pull_request_comments_model()
+            self.change_request_comments_model()
             # self.pull_request_events_model(pk_source_prs)
             # self.pull_request_reviews_model(pk_source_prs)
             # self.pull_request_nested_data_model(pk_source_prs)
@@ -465,82 +469,67 @@ class GerritChangeRequestWorker(Worker):
         self.register_task_completion(self.task_info, self.repo_id, 'change_requests')
 
 ## Comment out whole method if not available.
-#     def pull_request_comments_model(self):
-#
-#         comments_url = (
-#             'https://api.github.com/repos/{owner}/{repo}/issues/comments?per_page=100&page={}'
-#         )
-#
-#         comment_action_map = {
-#             'insert': {
-#                 'source': ['created_at', 'body'],
-#                 'augur': ['msg_timestamp', 'msg_text']
-#             }
-#         }
-#
-#         # TODO: add relational table so we can include a where_clause here
-#         pr_comments = self.new_paginate_endpoint(
-#             comments_url, action_map=comment_action_map, table=self.message_table
-#         )
-#
-#         self.write_debug_data(pr_comments, 'pr_comments')
-#
-#         self.logger.info("CHECK")
-#         self.logger.info(f'inserting messages for {pr_comments} repo')
-#
-#         pr_comments['insert'] = self.text_clean(pr_comments['insert'], 'body')
-#
-#         pr_comments['insert'] = self.enrich_cntrb_id(
-#             pr_comments['insert'], 'user.login', action_map_additions={
-#                 'insert': {
-#                     'source': ['user.node_id'],
-#                     'augur': ['gh_node_id']
-#                 }
-#             }, prefix='user.'
-#         )
-#
-#         pr_comments_insert = [
-#             {
-#                 'pltfrm_id': self.platform_id,
-#                 'msg_text': comment['body'].replace("\x00", "\uFFFD"),
-#                 'msg_timestamp': comment['created_at'],
-#                 'cntrb_id': comment['cntrb_id'],
-#                 'tool_source': self.tool_source,
-#                 'tool_version': self.tool_version,
-#                 'data_source': self.data_source
-#             } for comment in pr_comments['insert']
-#         ]
-#
-#         self.bulk_insert(self.message_table, insert=pr_comments_insert)
-#
-#         # PR MESSAGE REF TABLE
-#         self.logger.info("CHECK")
-#         self.logger.info(f'inserting messages for {pr_comments} repo')
-#         self.logger.info(f'message table {self.message_table}')
-#
-#         c_pk_source_comments = self.enrich_data_primary_keys(pr_comments['insert'],
-#             self.message_table, ['created_at', 'body'], ['msg_timestamp', 'msg_text'])
-#
-#         self.write_debug_data(c_pk_source_comments, 'c_pk_source_comments')
-#
-#         both_pk_source_comments = self.enrich_data_primary_keys(c_pk_source_comments,
-#             self.pull_requests_table, ['issue_url'], ['pr_issue_url'])
-#
-#         self.write_debug_data(both_pk_source_comments, 'both_pk_source_comments')
-#
-#         pr_message_ref_insert = [
-#             {
-#                 'pull_request_id': comment['pull_request_id'],
-#                 'msg_id': comment['msg_id'],
-#                 'pr_message_ref_src_comment_id': comment['id'],
-#                 'pr_message_ref_src_node_id': comment['node_id'],
-#                 'tool_source': self.tool_source,
-#                 'tool_version': self.tool_version,
-#                 'data_source': self.data_source
-#             } for comment in both_pk_source_comments
-#         ]
-#
-#         self.bulk_insert(self.pull_request_message_ref_table, insert=pr_message_ref_insert)
+    def change_request_comments_model(self):
+
+        self.logger.info("Starting change request message collection")
+
+        for change_id in self.change_ids:
+
+            comments_url = (
+                'https://gerrit.automotivelinux.org/gerrit/changes/{}/comments'.format(change_id)
+            )
+
+            comment_action_map = {
+                'insert': {
+                    'source': ['change_message_id'],
+                    'augur': ['message_id']
+                }
+            }
+
+            # TODO: add relational table so we can include a where_clause here
+            pr_comments = self.paginate_endpoint(
+                comments_url, action_map=comment_action_map, table=self.change_requests_messages_table
+            )
+
+            self.write_debug_data(pr_comments, 'pr_comments')
+
+            self.logger.info("CHECK")
+            self.logger.info(f'inserting messages for {pr_comments} repo')
+
+            pr_comments['insert'] = self.text_clean(pr_comments['insert'], 'message')
+
+            pr_comments_insert = [
+                {
+                    'msg_text': comment['body'],
+                    'msg_updated': comment['updated'],
+                    'author_id': comment['author']['_account_id'],
+                    'tool_source': self.tool_source,
+                    'tool_version': self.tool_version,
+                    'data_source': self.data_source
+                } for comment in pr_comments['insert']
+            ]
+
+            self.bulk_insert(self.change_requests_messages_table, insert=pr_comments_insert)
+
+            # PR MESSAGE REF TABLE
+            self.logger.info("CHECK")
+            self.logger.info(f'inserting messages for {pr_comments} repo')
+            self.logger.info(f'message table {self.message_table}')
+
+
+            pr_message_ref_insert = [
+                {
+                    'change_request_id': change_id,
+                    'msg_id': comment['change_request_message_id'],
+                    'tool_source': self.tool_source,
+                    'tool_version': self.tool_version,
+                    'data_source': self.data_source
+                } for comment in both_pk_source_comments
+            ]
+
+            self.bulk_insert(self.change_request_message_ref_table, insert=pr_message_ref_insert)
+
+        self.logger.info("Finished change request message collection")
 #
 # ## This is the one thing we need for sure.
 #
