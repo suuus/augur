@@ -495,10 +495,8 @@ class GerritChangeRequestWorker(Worker):
             self.write_debug_data(pr_comments, 'pr_comments')
 
             self.logger.info("CHECK")
-            self.logger.info(f'inserting messages for {pr_comments} repo')
-
-            pr_comments['insert'] = self.text_clean(pr_comments['insert'], 'message')
-
+            # pr_comments['insert'] = self.text_clean(pr_comments['insert'], 'message')
+            #
             pr_comments_insert = [
                 {
                     'msg_id': comment['id'],
