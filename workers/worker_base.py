@@ -1873,12 +1873,24 @@ class Worker():
                     if platform == "gerrit":
                         #remove first line from response if it is a string from Gerrit
                         page_data = ''.join(page_data.split('\n')[1:])
+                        url_array = url.split("/")
+
                         try:
                             page_data = json.loads(page_data)
+                            #if hitting the comments endpoint
+                            if 'comments' in url_array:
+                                #get the keys for the json
+                                page_data_keys = list(page_data.keys())
+                                #make page_data one level lower in the json using the all the keys on the top level
+                                if len(page_data_keys) > 0:
+                                    new_page_data = []
+                                    for index in range(0, len(page_data_keys)):
+                                        new_page_data += page_data[page_data_keys[index]]
+                                    page_data = new_page_data
                             success = True
                             break
                         except:
-                            self.logger.info(f"Could not parse gerrit json response after removing first line: {page_data}")
+                            self.logger.info("Error while processing gerrit json data")
                     else:
                         self.logger.info(f"Warning! page_data was string: {page_data}\n")
                         if "<!DOCTYPE html>" in page_data:
