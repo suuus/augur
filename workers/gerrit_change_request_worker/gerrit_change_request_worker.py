@@ -489,7 +489,7 @@ class GerritChangeRequestWorker(Worker):
 
             # TODO: add relational table so we can include a where_clause here
             pr_comments = self.paginate_endpoint(
-                comments_url, action_map=comment_action_map, table=self.change_requests_messages_table
+                comments_url, action_map=comment_action_map, table=self.change_requests_messages_table, platform="gerrit"
             )
 
             self.write_debug_data(pr_comments, 'pr_comments')
