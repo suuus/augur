@@ -470,7 +470,11 @@ class GerritChangeRequestWorker(Worker):
 
         self.logger.info("Starting change request message collection")
 
-        for change_id in self.change_ids:
+        self.logger.info(f"{len(self.change_ids)} change requests to collect messages for")
+
+        for index, change_id in enumerate(self.change_ids, start=1):
+
+            self.logger.info(f"Message collection {index} of {len(self.change_ids)}")
 
             comments_url = (
                 'https://gerrit.automotivelinux.org/gerrit/changes/{}/comments'.format(change_id)
