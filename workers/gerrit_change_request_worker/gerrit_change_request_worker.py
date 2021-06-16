@@ -36,10 +36,7 @@ class GerritChangeRequestWorker(Worker):
 
         # Define the tables needed to insert, update, or delete on
         data_tables = ['change_requests', 'contributors', 'pull_requests',
-            'pull_request_assignees', 'pull_request_events', 'pull_request_labels',
-            'pull_request_message_ref', 'pull_request_meta', 'pull_request_repo',
-            'pull_request_reviewers', 'pull_request_teams', 'message', 'pull_request_commits',
-            'pull_request_files', 'pull_request_reviews', 'pull_request_review_message_ref']
+        data_tables = ['change_requests', 'change_requests_messages']
         operations_tables = ['worker_history', 'worker_job']
 
 ### Changes to "change Request" stopped here
