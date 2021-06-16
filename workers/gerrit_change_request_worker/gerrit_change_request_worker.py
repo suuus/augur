@@ -482,8 +482,8 @@ class GerritChangeRequestWorker(Worker):
 
             comment_action_map = {
                 'insert': {
-                    'source': ['change_message_id'],
-                    'augur': ['message_id']
+                    'source': ['id'],
+                    'augur': ['msg_id']
                 }
             }
 
