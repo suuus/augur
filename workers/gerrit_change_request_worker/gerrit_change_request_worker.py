@@ -414,7 +414,7 @@ class GerritChangeRequestWorker(Worker):
                 'change_src_state': pr['status'],
                 'change_created_at': pr['created'],
                 'change_updated_at': pr['updated'],
-                'change_merged_at': pr['submitted'] if 'submitted' in pr.keys() else None,
+                'change_submitted_at': pr['submitted'] if 'submitted' in pr.keys() else None,
                 'tool_source': self.tool_source,
                 'tool_version': self.tool_version,
                 'data_source': 'Gerrit API'
