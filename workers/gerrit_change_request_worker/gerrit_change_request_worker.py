@@ -501,7 +501,9 @@ class GerritChangeRequestWorker(Worker):
 
             pr_comments_insert = [
                 {
-                    'msg_text': comment['body'],
+                    'msg_id': comment['id'],
+                    'change_id': change_id,
+                    'msg_text': comment['message'],
                     'msg_updated': comment['updated'],
                     'author_id': comment['author']['_account_id'],
                     'tool_source': self.tool_source,
@@ -513,22 +515,22 @@ class GerritChangeRequestWorker(Worker):
             self.bulk_insert(self.change_requests_messages_table, insert=pr_comments_insert)
 
             # PR MESSAGE REF TABLE
-            self.logger.info("CHECK")
-            self.logger.info(f'inserting messages for {pr_comments} repo')
-            self.logger.info(f'message table {self.message_table}')
-
-
-            pr_message_ref_insert = [
-                {
-                    'change_request_id': change_id,
-                    'msg_id': comment['change_request_message_id'],
-                    'tool_source': self.tool_source,
-                    'tool_version': self.tool_version,
-                    'data_source': self.data_source
-                } for comment in both_pk_source_comments
-            ]
-
-            self.bulk_insert(self.change_request_message_ref_table, insert=pr_message_ref_insert)
+            # self.logger.info("CHECK")
+            # self.logger.info(f'inserting messages for {pr_comments} repo')
+            # self.logger.info(f'message table {self.message_table}')
+            #
+            #
+            # pr_message_ref_insert = [
+            #     {
+            #         'change_request_id': change_id,
+            #         'msg_id': comment['change_request_message_id'],
+            #         'tool_source': self.tool_source,
+            #         'tool_version': self.tool_version,
+            #         'data_source': self.data_source
+            #     } for comment in both_pk_source_comments
+            # ]
+            #
+            # self.bulk_insert(self.change_request_message_ref_table, insert=pr_message_ref_insert)
 
         self.logger.info("Finished change request message collection")
 #
