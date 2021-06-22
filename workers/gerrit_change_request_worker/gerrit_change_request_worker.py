@@ -322,61 +322,51 @@ class GerritChangeRequestWorker(Worker):
 #
 #
 # ## If Commits are returned for each merge request, this will work.
-#     def pull_request_commits_model(self, task_info, repo_id):
-#         """ Queries the commits related to each pull request already inserted in the db """
-#
-#         self.logger.info("Querying starting ids info...\n")
-#
-#         # Increment so we are ready to insert the 'next one' of each of these most recent ids
-#         self.history_id = self.get_max_id(
-#             'worker_history', 'history_id', operations_table=True
-#         ) + 1
-#         self.pr_id_inc = self.get_max_id('pull_requests', 'pull_request_id')
-#         self.pr_meta_id_inc = self.get_max_id('pull_request_meta', 'pr_repo_meta_id')
-#
-#
-#         # query existing PRs and the respective url we will append the commits url to
-#         pr_url_sql = s.sql.text("""
-#             SELECT DISTINCT pr_url, pull_requests.pull_request_id
-#             FROM pull_requests--, pull_request_meta
-#             WHERE repo_id = {}
-#         """.format(self.repo_id))
-#         urls = pd.read_sql(pr_url_sql, self.db, params={})
-#
-#         for pull_request in urls.itertuples(): # for each url of PRs we have inserted
-#             commits_url = pull_request.pr_url + '/commits?page={}'
-#             table = 'pull_request_commits'
-#             table_pkey = 'pr_cmt_id'
-#             duplicate_col_map = {'pr_cmt_sha': 'sha'}
-#             update_col_map = {}
-#
-#             # Use helper paginate function to iterate the commits url and check for dupes
-#             pr_commits = self.paginate(
-#                 commits_url, duplicate_col_map, update_col_map, table, table_pkey,
-#                 where_clause="where pull_request_id = {}".format(pull_request.pull_request_id)
-#             )
-#
-#             for pr_commit in pr_commits: # post-pagination, iterate results
-#                 if pr_commit['flag'] == 'need_insertion': # if non-dupe
-#                     pr_commit_row = {
-#                         'pull_request_id': pull_request.pull_request_id,
-#                         'pr_cmt_sha': pr_commit['sha'],
-#                         'pr_cmt_node_id': pr_commit['node_id'],
-#                         'pr_cmt_message': pr_commit['commit']['message'],
-#                         # 'pr_cmt_comments_url': pr_commit['comments_url'],
-#                         'tool_source': self.tool_source,
-#                         'tool_version': self.tool_version,
-#                         'data_source': 'GitHub API',
-#                     }
-#                     result = self.db.execute(
-#                         self.pull_request_commits_table.insert().values(pr_commit_row)
-#                     )
-#                     self.logger.info(
-#                         f"Inserted Pull Request Commit: {result.inserted_primary_key}\n"
-#                     )
-#
-#         self.register_task_completion(self.task_info, self.repo_id, 'pull_request_commits')
+    def change_request_commits_model(self):
 
+        self.logger.info("Starting change request commits collection")
+
+        self.logger.info(f"{len(self.change_ids)} change requests to collect commits for")
+
+        for index, change_id in enumerate(self.change_ids, start=1):
+
+            self.logger.info(f"Commit collection {index} of {len(self.change_ids)}")
+
+            comments_url = (
+                'https://gerrit.automotivelinux.org/gerrit/changes/{}/edit'.format(change_id)
+            )
+
+            commit_action_map = {
+                'insert': {
+                    'source': ['id'],
+                    'augur': ['msg_id']
+                }
+            }
+
+            # TODO: add relational table so we can include a where_clause here
+            pr_commits = self.paginate_endpoint(
+                comments_url, action_map=commit_action_map, table=self.change_requests_commits_table, platform="gerrit"
+            )
+
+            # self.write_debug_data(pr_comments, 'pr_comments')
+
+            # self.logger.info("CHECK")
+            # pr_comments['insert'] = self.text_clean(pr_comments['insert'], 'message')
+            #
+            pr_commits_insert = [
+                {
+                    'msg_id': commit['id'],
+                    'change_id': change_id,
+                    'msg_text': commit['message'],
+                    'msg_updated': commit['updated'],
+                    'author_id': commit['author']['_account_id'],
+                    'tool_source': self.tool_source,
+                    'tool_version': self.tool_version,
+                    'data_source': self.data_source
+                } for commit in pr_commits['insert']
+            ]
+
+            self.bulk_insert(self.change_requests_commits_table, insert=pr_commits_insert)
 
 ## This is where teh GERRIT API Link will go
     def _get_pk_source_prs(self):
@@ -459,6 +449,7 @@ class GerritChangeRequestWorker(Worker):
 
         if source_prs:
             self.change_request_comments_model()
+            self.change_request_commits_model()
             # self.pull_request_events_model(pk_source_prs)
             # self.pull_request_reviews_model(pk_source_prs)
             # self.pull_request_nested_data_model(pk_source_prs)
