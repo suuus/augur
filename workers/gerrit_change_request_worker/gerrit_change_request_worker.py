@@ -322,51 +322,51 @@ class GerritChangeRequestWorker(Worker):
 #
 #
 # ## If Commits are returned for each merge request, this will work.
-    def change_request_commits_model(self):
-
-        self.logger.info("Starting change request commits collection")
-
-        self.logger.info(f"{len(self.change_ids)} change requests to collect commits for")
-
-        for index, change_id in enumerate(self.change_ids, start=1):
-
-            self.logger.info(f"Commit collection {index} of {len(self.change_ids)}")
-
-            comments_url = (
-                'https://gerrit.automotivelinux.org/gerrit/changes/{}/edit'.format(change_id)
-            )
-
-            commit_action_map = {
-                'insert': {
-                    'source': ['id'],
-                    'augur': ['msg_id']
-                }
-            }
-
-            # TODO: add relational table so we can include a where_clause here
-            pr_commits = self.paginate_endpoint(
-                comments_url, action_map=commit_action_map, table=self.change_requests_commits_table, platform="gerrit"
-            )
-
-            # self.write_debug_data(pr_comments, 'pr_comments')
-
-            # self.logger.info("CHECK")
-            # pr_comments['insert'] = self.text_clean(pr_comments['insert'], 'message')
-            #
-            pr_commits_insert = [
-                {
-                    'msg_id': commit['id'],
-                    'change_id': change_id,
-                    'msg_text': commit['message'],
-                    'msg_updated': commit['updated'],
-                    'author_id': commit['author']['_account_id'],
-                    'tool_source': self.tool_source,
-                    'tool_version': self.tool_version,
-                    'data_source': self.data_source
-                } for commit in pr_commits['insert']
-            ]
-
-            self.bulk_insert(self.change_requests_commits_table, insert=pr_commits_insert)
+    # def change_request_commits_model(self):
+    #
+    #     self.logger.info("Starting change request commits collection")
+    #
+    #     self.logger.info(f"{len(self.change_ids)} change requests to collect commits for")
+    #
+    #     for index, change_id in enumerate(self.change_ids, start=1):
+    #
+    #         self.logger.info(f"Commit collection {index} of {len(self.change_ids)}")
+    #
+    #         comments_url = (
+    #             'https://gerrit.automotivelinux.org/gerrit/changes/{}/edit'.format(change_id)
+    #         )
+    #
+    #         commit_action_map = {
+    #             'insert': {
+    #                 'source': ['id'],
+    #                 'augur': ['msg_id']
+    #             }
+    #         }
+    #
+    #         # TODO: add relational table so we can include a where_clause here
+    #         pr_commits = self.paginate_endpoint(
+    #             comments_url, action_map=commit_action_map, table=self.change_requests_commits_table, platform="gerrit"
+    #         )
+    #
+    #         # self.write_debug_data(pr_comments, 'pr_comments')
+    #
+    #         # self.logger.info("CHECK")
+    #         # pr_comments['insert'] = self.text_clean(pr_comments['insert'], 'message')
+    #         #
+    #         pr_commits_insert = [
+    #             {
+    #                 'msg_id': commit['id'],
+    #                 'change_id': change_id,
+    #                 'msg_text': commit['message'],
+    #                 'msg_updated': commit['updated'],
+    #                 'author_id': commit['author']['_account_id'],
+    #                 'tool_source': self.tool_source,
+    #                 'tool_version': self.tool_version,
+    #                 'data_source': self.data_source
+    #             } for commit in pr_commits['insert']
+    #         ]
+    #
+    #         self.bulk_insert(self.change_requests_commits_table, insert=pr_commits_insert)
 
 ## This is where teh GERRIT API Link will go
     def _get_pk_source_prs(self):
