@@ -35,7 +35,6 @@ class GerritChangeRequestWorker(Worker):
         models = ['change_requests']
 
         # Define the tables needed to insert, update, or delete on
-        data_tables = ['change_requests', 'contributors', 'pull_requests',
         data_tables = ['change_requests', 'change_requests_messages']
         operations_tables = ['worker_history', 'worker_job']
 
