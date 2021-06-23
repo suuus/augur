@@ -447,11 +447,11 @@ class GerritChangeRequestWorker(Worker):
 
 
         if source_prs:
-            self.change_request_comments_model()
-            self.change_request_commits_model()
+            # self.change_request_comments_model()
+            # self.change_request_commits_model()
             # self.pull_request_events_model(pk_source_prs)
             # self.pull_request_reviews_model(pk_source_prs)
-            # self.pull_request_nested_data_model(pk_source_prs)
+            self.change_request_nested_data_model()
 
         self.register_task_completion(self.task_info, self.repo_id, 'change_requests')
 
@@ -781,7 +781,7 @@ class GerritChangeRequestWorker(Worker):
 #
 #
 # ### If you could comment this so we knew what the fuck it did, that would be great. :)
-#     def pull_request_nested_data_model(self, pk_source_prs=[]):
+    def pull_request_nested_data_model(self):
 #
 #         if not pk_source_prs:
 #             pk_source_prs = self._get_pk_source_prs()
@@ -843,36 +843,51 @@ class GerritChangeRequestWorker(Worker):
 #         ]
 #         self.bulk_insert(self.pull_request_labels_table, insert=labels_insert)
 #
-#         # PR reviewers insertion
-#         reviewer_action_map = {
-#             'insert': {
-#                 'source': ['pull_request_id', 'id'],
-#                 'augur': ['pull_request_id', 'pr_reviewer_src_id']
-#             }
-#         }
-#         source_reviewers_insert, _ = self.new_organize_needed_data(
-#             reviewers_all, augur_table=self.pull_request_reviewers_table,
-#             action_map=reviewer_action_map
-#         )
-#         source_reviewers_insert = self.enrich_cntrb_id(
-#             source_reviewers_insert, 'login', action_map_additions={
-#                 'insert': {
-#                     'source': ['node_id'],
-#                     'augur': ['gh_node_id']
-#                 }
-#             }
-#         )
-#         reviewers_insert = [
-#             {
-#                 'pull_request_id': reviewer['pull_request_id'],
-#                 'cntrb_id': reviewer['cntrb_id'],
-#                 'pr_reviewer_src_id': int(float(reviewer['id'])),
-#                 'tool_source': self.tool_source,
-#                 'tool_version': self.tool_version,
-#                 'data_source': self.data_source
-#             } for reviewer in source_reviewers_insert if 'login' in reviewer
-#         ]
-#         self.bulk_insert(self.pull_request_reviewers_table, insert=reviewers_insert)
+        # PR reviewers insertion
+
+            self.logger.info("Starting change request reviewers collection")
+
+            self.logger.info(f"{len(self.change_ids)} change requests to collect reviewers for")
+
+            for index, change_id in enumerate(self.change_ids, start=1):
+
+                self.logger.info(f"Reviewers collection {index} of {len(self.change_ids)}")
+
+                reviewers_url = (
+                    'https://gerrit.automotivelinux.org/gerrit/changes/{}/reviewers'.format(change_id)
+                )
+
+                reviewer_action_map = {
+                    'insert': {
+                        'source': ['pull_request_id', 'id'],
+                        'augur': ['pull_request_id', 'pr_reviewer_src_id']
+                    }
+                }
+
+                # TODO: add relational table so we can include a where_clause here
+                pr_reviewers = self.paginate_endpoint(
+                    reviewers_url, action_map=reviewer_action_map, table=self.change_requests_reviewers_table, platform="gerrit"
+                )
+
+                # self.write_debug_data(pr_comments, 'pr_comments')
+
+                # self.logger.info("CHECK")
+                # pr_comments['insert'] = self.text_clean(pr_comments['insert'], 'message')
+                #
+                pr_reviewers_insert = [
+                    {
+                        'msg_id': reviewer['id'],
+                        'change_id': change_id,
+                        'msg_text': reviewer['message'],
+                        'msg_updated': reviewer['updated'],
+                        'author_id': reviewer['author']['_account_id'],
+                        'tool_source': self.tool_source,
+                        'tool_version': self.tool_version,
+                        'data_source': self.data_source
+                    } for reviewer in pr_reviewers['insert']
+                ]
+
+                self.bulk_insert(self.change_requests_reviewers_table, insert=pr_reviewers_insert)
 #
 #         # PR assignees insertion
 #         assignee_action_map = {
