@@ -35,7 +35,7 @@ class GerritChangeRequestWorker(Worker):
         models = ['change_requests']
 
         # Define the tables needed to insert, update, or delete on
-        data_tables = ['change_requests', 'change_requests_messages']
+        data_tables = ['change_requests', 'change_requests_messages', 'change_request_reviewers']
         operations_tables = ['worker_history', 'worker_job']
 
 ### Changes to "change Request" stopped here
@@ -781,7 +781,7 @@ class GerritChangeRequestWorker(Worker):
 #
 #
 # ### If you could comment this so we knew what the fuck it did, that would be great. :)
-    def pull_request_nested_data_model(self):
+    def change_request_nested_data_model(self):
 #
 #         if not pk_source_prs:
 #             pk_source_prs = self._get_pk_source_prs()
@@ -876,11 +876,11 @@ class GerritChangeRequestWorker(Worker):
                 #
                 pr_reviewers_insert = [
                     {
-                        'msg_id': reviewer['id'],
+                        'reviewer_id': reviewer['_account_id'],
                         'change_id': change_id,
-                        'msg_text': reviewer['message'],
-                        'msg_updated': reviewer['updated'],
-                        'author_id': reviewer['author']['_account_id'],
+                        'reviewer_name': reviewer['name'],
+                        'reviewer_email': reviewer['email'],
+                        'reviewer_username': reviewer['username'],
                         'tool_source': self.tool_source,
                         'tool_version': self.tool_version,
                         'data_source': self.data_source
