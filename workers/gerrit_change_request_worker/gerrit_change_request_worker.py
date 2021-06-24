@@ -242,15 +242,15 @@ class GerritChangeRequestWorker(Worker):
     #         self.bulk_insert(self.change_requests_commits_table, insert=pr_commits_insert)
 
 ## This is where teh GERRIT API Link will go
-    def _get_pk_source_prs(self):
+    def get_crs(self):
 
-        pr_url = (
+        cr_url = (
             "https://gerrit.automotivelinux.org/gerrit/changes/?q=changes&no-limit"
         )
 
 ## Source columns in action_map may need to change to the ones in gerrit
 
-        pr_action_map = {
+        cr_action_amp = {
             'insert': {
                 'source': ['id'],
                 'augur': ['change_src_id']
@@ -261,43 +261,43 @@ class GerritChangeRequestWorker(Worker):
             }
         }
 
-        source_prs = self.paginate_endpoint(
-            pr_url, action_map=pr_action_map, table=self.change_requests_table, platform="gerrit")
+        source_crs = self.paginate_endpoint(
+            cr_url, action_map=cr_action_amp, table=self.change_requests_table, platform="gerrit")
 
-        self.write_debug_data(source_prs, 'source_prs')
+        self.write_debug_data(source_crs, 'source_prs')
 
-        if len(source_prs['all']) == 0:
+        if len(source_crs['all']) == 0:
             self.logger.info("There are no prs for this repository.\n")
             self.register_task_completion(self.task_info, self.repo_id, 'change_requests')
             return
 
-        prs_insert = [
+        crs_insert = [
             {
-                'change_src_id': pr['id'],
-                'change_src_state': pr['status'],
-                'change_created_at': pr['created'],
-                'change_updated_at': pr['updated'],
-                'change_submitted_at': pr['submitted'] if 'submitted' in pr.keys() else None,
+                'change_src_id': cr['id'],
+                'change_src_state': cr['status'],
+                'change_created_at': cr['created'],
+                'change_updated_at': cr['updated'],
+                'change_submitted_at': cr['submitted'] if 'submitted' in cr.keys() else None,
                 'tool_source': self.tool_source,
                 'tool_version': self.tool_version,
                 'data_source': 'Gerrit API'
-            } for pr in source_prs['insert']
+            } for cr in source_crs['insert']
         ]
 
-        if len(source_prs['insert']) > 0 or len(source_prs['update']) > 0:
+        if len(source_crs['insert']) > 0 or len(source_crs['update']) > 0:
             pr_insert_result, pr_update_result = self.bulk_insert(
                 self.change_requests_table,
-                update=source_prs['update'], unique_columns=pr_action_map['insert']['augur'],
-                insert=prs_insert, update_columns=pr_action_map['update']['augur']
+                update=source_crs['update'], unique_columns=cr_action_amp['insert']['augur'],
+                insert=crs_insert, update_columns=cr_action_amp['update']['augur']
             )
 
         self.change_ids = []
-        for pr in source_prs['insert']:
-            self.change_ids.append(pr['id'])
+        for cr in source_crs['insert']:
+            self.change_ids.append(cr['id'])
 
         self.logger.info("Finished gathering change requests")
 
-        return source_prs
+        return source_crs
 
 ## Bsic pull request model
     def change_requests_model(self, entry_info, repo_id):
@@ -307,20 +307,11 @@ class GerritChangeRequestWorker(Worker):
         :type entry_info: dict
         """
 
-
-## We changed this all to `git_url` at teh top ... you can reverse that choice just to get it working, and we clean it up later.
-        git_url = self.task_info['given']['git_url']
-
-        # self.query_github_contributors(self.task_info, self.repo_id)
-
         self.logger.info("Beginning collection of Change Requests...\n")
-        self.logger.info(f"Repo ID: {self.repo_id}, Git URL: {git_url}\n")
 
-        source_prs = self._get_pk_source_prs()
+        source_crs = self.get_crs()
 
-
-
-        if source_prs:
+        if source_crs:
             # self.change_request_comments_model()
             # self.change_request_commits_model()
             # self.pull_request_events_model(pk_source_prs)
@@ -352,16 +343,16 @@ class GerritChangeRequestWorker(Worker):
             }
 
             # TODO: add relational table so we can include a where_clause here
-            pr_comments = self.paginate_endpoint(
+            cr_comments = self.paginate_endpoint(
                 comments_url, action_map=comment_action_map, table=self.change_requests_messages_table, platform="gerrit"
             )
 
-            self.write_debug_data(pr_comments, 'pr_comments')
+            self.write_debug_data(cr_comments, 'pr_comments')
 
-            self.logger.info("CHECK")
+            # self.logger.info("CHECK")
             # pr_comments['insert'] = self.text_clean(pr_comments['insert'], 'message')
             #
-            pr_comments_insert = [
+            cr_comments_insert = [
                 {
                     'msg_id': comment['id'],
                     'change_id': change_id,
@@ -371,10 +362,10 @@ class GerritChangeRequestWorker(Worker):
                     'tool_source': self.tool_source,
                     'tool_version': self.tool_version,
                     'data_source': self.data_source
-                } for comment in pr_comments['insert']
+                } for comment in cr_comments['insert']
             ]
 
-            self.bulk_insert(self.change_requests_messages_table, insert=pr_comments_insert)
+            self.bulk_insert(self.change_requests_messages_table, insert=cr_comments_insert)
 
             # PR MESSAGE REF TABLE
             # self.logger.info("CHECK")
@@ -739,7 +730,7 @@ class GerritChangeRequestWorker(Worker):
                 }
 
                 # TODO: add relational table so we can include a where_clause here
-                pr_reviewers = self.paginate_endpoint(
+                cr_reviewers = self.paginate_endpoint(
                     reviewers_url, action_map=reviewer_action_map, table=self.change_request_reviewers_table, platform="gerrit"
                 )
 
@@ -748,7 +739,7 @@ class GerritChangeRequestWorker(Worker):
                 # self.logger.info("CHECK")
                 # pr_comments['insert'] = self.text_clean(pr_comments['insert'], 'message')
                 #
-                pr_reviewers_insert = [
+                cr_reviewers_insert = [
                     {
                         'reviewer_id': int(reviewer['_account_id']),
                         'change_id': change_id,
@@ -758,10 +749,10 @@ class GerritChangeRequestWorker(Worker):
                         'tool_source': self.tool_source,
                         'tool_version': self.tool_version,
                         'data_source': self.data_source
-                    } for reviewer in pr_reviewers['insert']
+                    } for reviewer in cr_reviewers['insert']
                 ]
 
-                self.bulk_insert(self.change_request_reviewers_table, insert=pr_reviewers_insert)
+                self.bulk_insert(self.change_request_reviewers_table, insert=cr_reviewers_insert)
 #
 #         # PR assignees insertion
 #         assignee_action_map = {
