@@ -733,8 +733,8 @@ class GerritChangeRequestWorker(Worker):
 
                 reviewer_action_map = {
                     'insert': {
-                        'source': ['pull_request_id', 'id'],
-                        'augur': ['pull_request_id', 'pr_reviewer_src_id']
+                        'source': ['_account_id'],
+                        'augur': ['reviewer_id']
                     }
                 }
 
