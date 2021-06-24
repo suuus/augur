@@ -750,10 +750,10 @@ class GerritChangeRequestWorker(Worker):
                 #
                 pr_reviewers_insert = [
                     {
-                        'reviewer_id': reviewer['_account_id'],
+                        'reviewer_id': int(reviewer['_account_id']),
                         'change_id': change_id,
                         'reviewer_name': reviewer['name'],
-                        'reviewer_email': reviewer['email'],
+                        'reviewer_email': reviewer['email'] if 'email' in reviewer.keys() else None,
                         'reviewer_username': reviewer['username'],
                         'tool_source': self.tool_source,
                         'tool_version': self.tool_version,
