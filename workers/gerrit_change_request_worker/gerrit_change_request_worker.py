@@ -866,7 +866,7 @@ class GerritChangeRequestWorker(Worker):
 
                 # TODO: add relational table so we can include a where_clause here
                 pr_reviewers = self.paginate_endpoint(
-                    reviewers_url, action_map=reviewer_action_map, table=self.change_requests_reviewers_table, platform="gerrit"
+                    reviewers_url, action_map=reviewer_action_map, table=self.change_request_reviewers_table, platform="gerrit"
                 )
 
                 # self.write_debug_data(pr_comments, 'pr_comments')
@@ -887,7 +887,7 @@ class GerritChangeRequestWorker(Worker):
                     } for reviewer in pr_reviewers['insert']
                 ]
 
-                self.bulk_insert(self.change_requests_reviewers_table, insert=pr_reviewers_insert)
+                self.bulk_insert(self.change_request_reviewers_table, insert=pr_reviewers_insert)
 #
 #         # PR assignees insertion
 #         assignee_action_map = {
