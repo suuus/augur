@@ -683,40 +683,51 @@ class GerritChangeRequestWorker(Worker):
 #             meta_all += [pr['head'], pr['base']]
 #
 #         # PR labels insertion
-#         label_action_map = {
-#             'insert': {
-#                 'source': ['pull_request_id', 'id'],
-#                 'augur': ['pull_request_id', 'pr_src_id']
-#             }
-#         }
-#         source_labels_insert, _ = self.new_organize_needed_data(
-#             labels_all, augur_table=self.pull_request_labels_table, action_map=label_action_map
-#         )
-#         labels_insert = [
-#             {
-#                 'pull_request_id': label['pull_request_id'],
-#                 'pr_src_id': label['id'],
-#                 'pr_src_node_id': label['node_id'],
-#                 'pr_src_url': label['url'],
-#                 'pr_src_description': label['name'],
-#                 'pr_src_color': label['color'],
-#                 'pr_src_default_bool': label['default'],
-#                 'tool_source': self.tool_source,
-#                 'tool_version': self.tool_version,
-#                 'data_source': self.data_source
-#             } for label in source_labels_insert
-#         ]
-#         self.bulk_insert(self.pull_request_labels_table, insert=labels_insert)
-#
-        # PR reviewers insertion
 
-            self.logger.info("Starting change request reviewers collection")
+            self.logger.info("Starting change request labels and reviewers collection")
 
-            self.logger.info(f"{len(self.change_ids)} change requests to collect reviewers for")
+            self.logger.info(f"{len(self.change_ids)} change requests to collect labels and reviewers for")
 
             for index, change_id in enumerate(self.change_ids, start=1):
 
-                self.logger.info(f"Reviewers collection {index} of {len(self.change_ids)}")
+                self.logger.info(f"Label and Reviewers collection {index} of {len(self.change_ids)}")
+
+                labels_url = (
+                    'https://gerrit.automotivelinux.org/gerrit/changes/{}/reviewers'.format(change_id)
+                )
+
+                labels_action_map = {
+                    'insert': {
+                        'source': ['_account_id'],
+                        'augur': ['reviewer_id']
+                    }
+                }
+
+                # TODO: add relational table so we can include a where_clause here
+                cr_labels = self.paginate_endpoint(
+                    labels_url, action_map=labels_action_map, table=self.change_request_labels_table, platform="gerrit"
+                )
+
+                # self.write_debug_data(pr_comments, 'pr_comments')
+
+                # self.logger.info("CHECK")
+                # pr_comments['insert'] = self.text_clean(pr_comments['insert'], 'message')
+                #
+                cr_labels_insert = [
+                    {
+                        'reviewer_id': label['_account_id'],
+                        'change_id': change_id,
+                        'reviewer_name': label['name'],
+                        'reviewer_email': label['email'] if 'email' in label.keys() else None,
+                        'reviewer_username': label['username'],
+                        'tool_source': self.tool_source,
+                        'tool_version': self.tool_version,
+                        'data_source': self.data_source
+                    } for label in cr_labels['insert']
+                ]
+
+                self.bulk_insert(self.change_request_labels_table, insert=cr_labels_insert)
+
 
                 reviewers_url = (
                     'https://gerrit.automotivelinux.org/gerrit/changes/{}/reviewers'.format(change_id)
@@ -736,9 +747,8 @@ class GerritChangeRequestWorker(Worker):
 
                 # self.write_debug_data(pr_comments, 'pr_comments')
 
-                # self.logger.info("CHECK")
                 # pr_comments['insert'] = self.text_clean(pr_comments['insert'], 'message')
-                #
+
                 cr_reviewers_insert = [
                     {
                         'reviewer_id': int(reviewer['_account_id']),
