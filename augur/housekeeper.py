@@ -48,7 +48,7 @@ class Housekeeper:
         rs = pd.read_sql(repoUrlSQL, self.db, params={})
         all_repos = rs['repo_git'].values.tolist()
 
-        # If enabled, updates all redirects of repositories 
+        # If enabled, updates all redirects of repositories
         # and organizations urls for configured repo_group_id
         self.update_url_redirects()
 
@@ -99,20 +99,20 @@ class Housekeeper:
                     time.sleep(3)
                     continue
 
-                logger.info("Housekeeper recognized that the broker has a worker that " + 
+                logger.info("Housekeeper recognized that the broker has a worker that " +
                     "can handle the {} model... beginning to distribute maintained tasks".format(job['model']))
                 while True:
                     logger.info('Housekeeper updating {} model with given {}...'.format(
                         job['model'], job['given'][0]))
-                    
+
                     if job['given'][0] == 'git_url' or job['given'][0] == 'github_url':
                         for repo in job['repos']:
                             if job['given'][0] == 'github_url' and 'github.com' not in repo['repo_git']:
                                 continue
                             given_key = 'git_url' if job['given'][0] == 'git_url' else 'github_url'
                             task = {
-                                "job_type": job['job_type'] if 'job_type' in job else 'MAINTAIN', 
-                                "models": [job['model']], 
+                                "job_type": job['job_type'] if 'job_type' in job else 'MAINTAIN',
+                                "models": [job['model']],
                                 "display_name": "{} model for url: {}".format(job['model'], repo['repo_git']),
                                 "given": {}
                             }
@@ -131,8 +131,8 @@ class Housekeeper:
 
                     elif job['given'][0] == 'repo_group':
                         task = {
-                                "job_type": job['job_type'] if 'job_type' in job else 'MAINTAIN', 
-                                "models": [job['model']], 
+                                "job_type": job['job_type'] if 'job_type' in job else 'MAINTAIN',
+                                "models": [job['model']],
                                 "display_name": "{} model for repo group id: {}".format(job['model'], repo_group_id),
                                 "given": {
                                     "repo_group": job['repos']
@@ -168,7 +168,8 @@ class Housekeeper:
 
     def prep_jobs(self):
         logger.info("Preparing housekeeper jobs")
-        for job in self.jobs:
+        for index, job in enumerate(self.jobs, start=1):
+            self.logger.info(f"Prepping job {index} of {len(self.jobs)}")
             if 'repo_group_id' in job or 'repo_ids' in job:
                 # If RG id is 0 then it just means to query all repos
                 where_and = 'AND' if job['model'] == 'issues' and 'repo_group_id' in job else 'WHERE'
@@ -176,16 +177,16 @@ class Housekeeper:
                     ) if 'repo_group_id' in job and job['repo_group_id'] != 0 else '{} repo.repo_id IN ({})'.format(
                     where_and, ",".join(str(id) for id in job['repo_ids'])) if 'repo_ids' in job else ''
                 repo_url_sql = s.sql.text("""
-                        SELECT repo.repo_id, repo.repo_git, pull_request_count, collected_pr_count, 
+                        SELECT repo.repo_id, repo.repo_git, pull_request_count, collected_pr_count,
                         (repo_info.pull_request_count - pr_count.collected_pr_count) AS pull_requests_missing
                         FROM augur_data.repo LEFT OUTER JOIN (
-                            SELECT count(*) AS collected_pr_count, repo_id 
-                            FROM pull_requests GROUP BY repo_id ) pr_count 
-                        ON pr_count.repo_id = repo.repo_id LEFT OUTER JOIN ( 
-                            SELECT repo_id, MAX ( data_collection_date ) AS last_collected 
-                            FROM augur_data.repo_info 
-                            GROUP BY repo_id) recent_info 
-                        ON recent_info.repo_id = pr_count.repo_id LEFT OUTER JOIN repo_info 
+                            SELECT count(*) AS collected_pr_count, repo_id
+                            FROM pull_requests GROUP BY repo_id ) pr_count
+                        ON pr_count.repo_id = repo.repo_id LEFT OUTER JOIN (
+                            SELECT repo_id, MAX ( data_collection_date ) AS last_collected
+                            FROM augur_data.repo_info
+                            GROUP BY repo_id) recent_info
+                        ON recent_info.repo_id = pr_count.repo_id LEFT OUTER JOIN repo_info
                         ON recent_info.repo_id = repo_info.repo_id
                             AND repo_info.data_collection_date = recent_info.last_collected
                         {}
@@ -193,13 +194,13 @@ class Housekeeper:
                         ORDER BY pull_requests_missing DESC NULLS LAST
                     """.format(where_condition)) if job['model'] == 'pull_requests' else s.sql.text("""
                         SELECT
-                            * 
+                            *
                         FROM
                             (
-                                ( SELECT repo_git, repo.repo_id, issues_enabled, COUNT ( * ) AS meta_count 
+                                ( SELECT repo_git, repo.repo_id, issues_enabled, COUNT ( * ) AS meta_count
                                 FROM repo left outer join repo_info on repo.repo_id = repo_info.repo_id
-                                --WHERE issues_enabled = 'true' 
-                                GROUP BY repo.repo_id, issues_enabled 
+                                --WHERE issues_enabled = 'true'
+                                GROUP BY repo.repo_id, issues_enabled
                                 ORDER BY repo.repo_id ) zz
                                 LEFT OUTER JOIN (
                                 SELECT repo.repo_id,
@@ -213,12 +214,12 @@ class Housekeeper:
                                     ABS (
                                     CAST (( COUNT ( * )) AS DOUBLE PRECISION ) / CAST ( b.issues_count + 1 AS DOUBLE PRECISION )) AS ratio_abs,
                                     (
-                                    CAST (( COUNT ( * )) AS DOUBLE PRECISION ) / CAST ( b.issues_count + 1 AS DOUBLE PRECISION )) AS ratio_issues 
+                                    CAST (( COUNT ( * )) AS DOUBLE PRECISION ) / CAST ( b.issues_count + 1 AS DOUBLE PRECISION )) AS ratio_issues
                                 FROM
-                                    augur_data.repo left outer join  
-                                    augur_data.pull_requests d on d.repo_id = repo.repo_id left outer join 
+                                    augur_data.repo left outer join
+                                    augur_data.pull_requests d on d.repo_id = repo.repo_id left outer join
                                     augur_data.repo_info b on d.repo_id = b.repo_id left outer join
-                                    ( SELECT repo_id, MAX ( data_collection_date ) AS last_collected FROM augur_data.repo_info GROUP BY repo_id ORDER BY repo_id ) e 
+                                    ( SELECT repo_id, MAX ( data_collection_date ) AS last_collected FROM augur_data.repo_info GROUP BY repo_id ORDER BY repo_id ) e
                                                                         on e.repo_id = d.repo_id and b.data_collection_date = e.last_collected
                                 WHERE d.pull_request_id IS NULL
                                 {}
@@ -226,21 +227,21 @@ class Housekeeper:
                                     repo.repo_id,
                                     d.repo_id,
                                     b.issues_count,
-                                    e.last_collected 
-                                ORDER BY ratio_abs 
-                                ) yy ON zz.repo_id = yy.repo_id 
+                                    e.last_collected
+                                ORDER BY ratio_abs
+                                ) yy ON zz.repo_id = yy.repo_id
                             ) D
                         ORDER BY ratio_abs NULLS FIRST
-                    """.format(where_condition)) if job['model'] == 'issues' and 'repo_group_id' in job else s.sql.text(""" 
+                    """.format(where_condition)) if job['model'] == 'issues' and 'repo_group_id' in job else s.sql.text("""
                         SELECT repo_git, repo_id FROM repo {} ORDER BY repo_id ASC
-                    """.format(where_condition)) if 'order' not in job else s.sql.text(""" 
-                        SELECT repo_git, repo.repo_id, count(*) as commit_count 
-                        FROM augur_data.repo left outer join augur_data.commits 
-                            on repo.repo_id = commits.repo_id 
+                    """.format(where_condition)) if 'order' not in job else s.sql.text("""
+                        SELECT repo_git, repo.repo_id, count(*) as commit_count
+                        FROM augur_data.repo left outer join augur_data.commits
+                            on repo.repo_id = commits.repo_id
                         {}
                         group by repo.repo_id ORDER BY commit_count {}
                     """.format(where_condition, job['order']))
-                
+
                 reorganized_repos = pd.read_sql(repo_url_sql, self.db, params={})
                 if len(reorganized_repos) == 0:
                     logger.warning("Trying to send tasks for repo group, but the repo group does not contain any repos: {}".format(repo_url_sql))
@@ -266,7 +267,7 @@ class Housekeeper:
                         result = self.helper_db.execute(self.job_table.insert().values(job_tuple))
                         logger.debug("No job tuple for {} model was found, so one was inserted into the job table: {}".format(job['model'], job_tuple))
 
-                    # If a last id is not recorded, start from beginning of repos 
+                    # If a last id is not recorded, start from beginning of repos
                     #   (first id is not necessarily 0)
                     try:
                         last_id = int(job_df.iloc[0]['since_id_str'])
@@ -287,7 +288,7 @@ class Housekeeper:
                         self.history_id = int(history_df.iloc[0]['history_id'])
                         finishing_task = True
 
-                # Rearrange repos so the one after the last one that 
+                # Rearrange repos so the one after the last one that
                 #   was completed will be ran first (if prioritized ordering is not available/enabled)
                 if job['model'] not in ['issues', 'pull_requests']:
                     before_repos = reorganized_repos.loc[reorganized_repos['repo_id'].astype(int) < last_id]
@@ -299,10 +300,10 @@ class Housekeeper:
                     reorganized_repos['focused_task'] = job['all_focused']
 
                 reorganized_repos = reorganized_repos.to_dict('records')
-            
+
                 if finishing_task:
                     reorganized_repos[0]['focused_task'] = 1
-                
+
                 job['repos'] = reorganized_repos
 
             elif 'repo_id' in job:
@@ -426,4 +427,3 @@ class Housekeeper:
         path = urlparse(repo_url).path
         parts = path.split('/')
         return parts[1:]
-
