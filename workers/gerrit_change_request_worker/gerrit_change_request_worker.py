@@ -14,7 +14,7 @@ from multiprocessing import Process, Queue
 import pandas as pd
 import sqlalchemy as s
 from sqlalchemy.sql.expression import bindparam
-from workers.worker_base import WorkerGitInterfaceable
+from workers.worker_git_integration import WorkerGitInterfaceable
 
 ## Don't forget to change Config.py for housekeeper and workers
 
