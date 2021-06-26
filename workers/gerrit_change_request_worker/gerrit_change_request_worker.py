@@ -693,7 +693,7 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
                 self.logger.info(f"Label and Reviewers collection {index} of {len(self.change_ids)}")
 
                 labels_url = (
-                    'https://gerrit.automotivelinux.org/gerrit/changes/{}/reviewers'.format(change_id)
+                    'https://gerrit.automotivelinux.org/gerrit/changes/{}/detail'.format(change_id)
                 )
 
                 labels_action_map = {
