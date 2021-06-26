@@ -167,14 +167,8 @@ class Housekeeper:
             process.terminate()
 
     def prep_jobs(self):
-<<<<<<< HEAD
         for index, job in enumerate(self.jobs, start=1):
             self.printProgressBar(index, len(self.jobs), 'Preparing housekeeper jobs:', 'Complete', 1, 50)
-=======
-        logger.info("Preparing housekeeper jobs")
-        for index, job in enumerate(self.jobs, start=1):
-            self.logger.info(f"Prepping job {index} of {len(self.jobs)}")
->>>>>>> 3c540ecac3ed8c104c267d9a931f86c27f45ab25
             if 'repo_group_id' in job or 'repo_ids' in job:
                 # If RG id is 0 then it just means to query all repos
                 where_and = 'AND' if job['model'] == 'issues' and 'repo_group_id' in job else 'WHERE'
@@ -432,8 +426,6 @@ class Housekeeper:
         path = urlparse(repo_url).path
         parts = path.split('/')
         return parts[1:]
-<<<<<<< HEAD
-
 
     def printProgressBar(self, iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
         """
@@ -456,5 +448,3 @@ class Housekeeper:
         # Print New Line on Complete
         if iteration == total:
             print()
-=======
->>>>>>> 3c540ecac3ed8c104c267d9a931f86c27f45ab25
