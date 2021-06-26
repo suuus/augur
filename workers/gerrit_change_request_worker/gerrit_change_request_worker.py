@@ -14,11 +14,11 @@ from multiprocessing import Process, Queue
 import pandas as pd
 import sqlalchemy as s
 from sqlalchemy.sql.expression import bindparam
-from workers.worker_base import Worker
+from workers.worker_base import WorkerGitInterfaceable
 
 ## Don't forget to change Config.py for housekeeper and workers
 
-class GerritChangeRequestWorker(Worker):
+class GerritChangeRequestWorker(WorkerGitInterfaceable):
     """
     Worker that collects Pull Request related data from the
     Github API and stores it in our database.
