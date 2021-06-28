@@ -35,7 +35,7 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
         models = ['change_requests']
 
         # Define the tables needed to insert, update, or delete on
-        data_tables = ['change_requests', 'change_requests_messages', 'change_request_reviewers']
+        data_tables = ['change_requests', 'change_requests_messages', 'change_request_reviewers', 'change_request_labels']
         operations_tables = ['worker_history', 'worker_job']
 
 ### Changes to "change Request" stopped here
@@ -684,50 +684,69 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
 #
 #         # PR labels insertion
 
-            self.logger.info("Starting change request labels and reviewers collection")
+            self.logger.info("Starting Labels Colletion")
 
-            self.logger.info(f"{len(self.change_ids)} change requests to collect labels and reviewers for")
+            labels_url = (
+                'https://gerrit.automotivelinux.org/gerrit/changes/?q=changes&o=LABELS'
+            )
+
+            labels_action_map = {
+                'insert': {
+                    'source': ['change_id', 'label'],
+                    'augur': ['change_id', 'label']
+                }
+            }
+
+            # TODO: add relational table so we can include a where_clause here
+            cr_labels = self.paginate_endpoint(
+                labels_url, action_map=labels_action_map, table=self.change_request_labels_table, platform="gerrit"
+            )
+
+            self.logger.info(f"Labels: {cr_labels}")
+
+            # self.write_debug_data(pr_comments, 'pr_comments')
+
+            # self.logger.info("CHECK")
+            # pr_comments['insert'] = self.text_clean(pr_comments['insert'], 'message')
+            #
+            cr_labels_insert = []
+            for change_request in cr_labels['insert']:
+                for label in change_request['labels']:
+                    cr_labels_insert.append(
+                        {
+                            'label': label,
+                            'change_id': change_request['id'],
+                            'tool_source': self.tool_source,
+                            'tool_version': self.tool_version,
+                            'data_source': self.data_source
+                        }
+                    )
+
+
+
+            # cr_labels_insert = [
+            #     {
+            #         'label': for label_name in label['labels'],
+            #         'change_id': label['change_id'],
+            #         'tool_source': self.tool_source,
+            #         'tool_version': self.tool_version,
+            #         'data_source': self.data_source
+            #     } for label in cr_labels['insert']
+            # ]
+
+            self.bulk_insert(self.change_request_labels_table, insert=cr_labels_insert)
+
+            self.logger.info("Finished Labels Connection")
+
+
+
+            self.logger.info("Starting change request reviewers collection")
+
+            self.logger.info(f"{len(self.change_ids)} change requests to collect reviewers for")
 
             for index, change_id in enumerate(self.change_ids, start=1):
 
-                self.logger.info(f"Label and Reviewers collection {index} of {len(self.change_ids)}")
-
-                labels_url = (
-                    'https://gerrit.automotivelinux.org/gerrit/changes/{}/detail'.format(change_id)
-                )
-
-                labels_action_map = {
-                    'insert': {
-                        'source': ['_account_id'],
-                        'augur': ['reviewer_id']
-                    }
-                }
-
-                # TODO: add relational table so we can include a where_clause here
-                cr_labels = self.paginate_endpoint(
-                    labels_url, action_map=labels_action_map, table=self.change_request_labels_table, platform="gerrit"
-                )
-
-                # self.write_debug_data(pr_comments, 'pr_comments')
-
-                # self.logger.info("CHECK")
-                # pr_comments['insert'] = self.text_clean(pr_comments['insert'], 'message')
-                #
-                cr_labels_insert = [
-                    {
-                        'reviewer_id': label['_account_id'],
-                        'change_id': change_id,
-                        'reviewer_name': label['name'],
-                        'reviewer_email': label['email'] if 'email' in label.keys() else None,
-                        'reviewer_username': label['username'],
-                        'tool_source': self.tool_source,
-                        'tool_version': self.tool_version,
-                        'data_source': self.data_source
-                    } for label in cr_labels['insert']
-                ]
-
-                self.bulk_insert(self.change_request_labels_table, insert=cr_labels_insert)
-
+                self.logger.info(f"Reviewers collection {index} of {len(self.change_ids)}")
 
                 reviewers_url = (
                     'https://gerrit.automotivelinux.org/gerrit/changes/{}/reviewers'.format(change_id)
