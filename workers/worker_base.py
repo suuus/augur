@@ -921,7 +921,8 @@ class Worker():
                             ).values(
                                 {key: key for key in update_columns}
                             ),
-                        update
+                        update, #This is the old attempt to fill the values of the bindparam, Throws an error with pr_src_id for whatever reason
+                        insert #This should allow sqlalchemy to fill the bindparam
                     )
                     if increment_counter:
                         self.update_counter += update_result.rowcount

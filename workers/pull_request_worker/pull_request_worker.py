@@ -414,6 +414,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 'repo_id': self.repo_id,
                 'pr_url': pr['url'],
                 'pr_src_id': pr['id'],
+                'b_pr_src_id': pr['id'], #Should fix issues with bind_param in sqlalchemy
                 'pr_src_node_id': None,
                 'pr_html_url': pr['html_url'],
                 'pr_diff_url': pr['diff_url'],
