@@ -335,7 +335,7 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
             # self.change_request_commits_model()
             # self.pull_request_events_model(pk_source_prs)
             # self.pull_request_reviews_model(pk_source_prs)
-            # self.change_request_nested_data_model()
+            self.change_request_nested_data_model()
 
         self.register_task_completion(self.task_info, self.repo_id, 'change_requests')
 
@@ -736,8 +736,11 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
                 for label in change_request['labels']:
                     cr_labels_insert.append(
                         {
+                            'change_src_id': change_request['id'],
+                            'change_project': change_request['id'].split('~')[0],
+                            'change_branch': change_request['id'].split('~')[1],
+                            'change_id': change_request['id'].split('~')[2],
                             'label': label,
-                            'change_id': change_request['id'],
                             'tool_source': self.tool_source,
                             'tool_version': self.tool_version,
                             'data_source': self.data_source
@@ -794,6 +797,9 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
                     {
                         'reviewer_id': int(reviewer['_account_id']),
                         'change_id': change_id,
+                        'change_project': change_id.split('~')[0],
+                        'change_branch': change_id.split('~')[1],
+                        'change_id': change_id.split('~')[2],
                         'reviewer_name': reviewer['name'],
                         'reviewer_email': reviewer['email'] if 'email' in reviewer.keys() else None,
                         'reviewer_username': reviewer['username'],
