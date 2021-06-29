@@ -324,8 +324,8 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         self.history_id = self.get_max_id(
             'worker_history', 'history_id', operations_table=True
         ) + 1
-        self.pr_id_inc = self.get_max_id('pull_requests', 'pull_request_id')
-        self.pr_meta_id_inc = self.get_max_id('pull_request_meta', 'pr_repo_meta_id')
+        self.pr_id_inc = self.get_max_id('pull_requests', 'pull_request_id' , operations_table=True)
+        self.pr_meta_id_inc = self.get_max_id('pull_request_meta', 'pr_repo_meta_id', operations_table=True)
 
 
         # query existing PRs and the respective url we will append the commits url to
