@@ -271,9 +271,28 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
             self.register_task_completion(self.task_info, self.repo_id, 'change_requests')
             return
 
+        # self.logger.info(f"Change requests: {source_crs}")
+        # self.logger.info(f"Change Request keys: {source_crs.keys()}")
+
+        # self.logger.info(f"Whole_id: {source_crs['insert'][0]['id']}")
+        # self.logger.info(f"Id array: {source_crs['insert'][0]['id'].split('-')}")
+        # sample_cr = source_crs['insert'][0]
+        # self.logger.info(f"Project: {sample_cr['id'].split('-')[0]}")
+        # self.logger.info(f"Branch: {sample_cr['id'].split('-')[1].split('~')[0]}")
+        # self.logger.info(f"Id: {sample_cr['id'].split('-')[1].split('~')[1]}")
+        # self.logger.info(f"Cr: {source_crs['insert'][0]}\n\n")
+
+        # self.logger.info(f"Project: {sample_cr['id'].split('~')[0]}")
+        # self.logger.info(f"Branch: {sample_cr['id'].split('~')[1]}")
+        # self.logger.info(f"Id: {sample_cr['id'].split('~')[2]}")
+
+
         crs_insert = [
             {
                 'change_src_id': cr['id'],
+                'change_project': cr['id'].split('~')[0],
+                'change_branch': cr['id'].split('~')[1],
+                'change_id': cr['id'].split('~')[2],
                 'change_src_state': cr['status'],
                 'change_created_at': cr['created'],
                 'change_updated_at': cr['updated'],
