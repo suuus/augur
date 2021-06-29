@@ -331,11 +331,11 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
         source_crs = self.get_crs()
 
         if source_crs:
-            # self.change_request_comments_model()
+            self.change_request_comments_model()
             # self.change_request_commits_model()
             # self.pull_request_events_model(pk_source_prs)
             # self.pull_request_reviews_model(pk_source_prs)
-            self.change_request_nested_data_model()
+            # self.change_request_nested_data_model()
 
         self.register_task_completion(self.task_info, self.repo_id, 'change_requests')
 
@@ -374,7 +374,10 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
             cr_comments_insert = [
                 {
                     'msg_id': comment['id'],
-                    'change_id': change_id,
+                    'change_src_id': change_id,
+                    'change_project': change_id.split('~')[0],
+                    'change_branch': change_id.split('~')[1],
+                    'change_id': change_id.split('~')[2],
                     'msg_text': comment['message'],
                     'msg_updated': comment['updated'],
                     'author_id': comment['author']['_account_id'],
