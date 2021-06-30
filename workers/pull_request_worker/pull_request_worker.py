@@ -459,8 +459,8 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         if len(source_prs['insert']) > 0 or len(source_prs['update']) > 0:
             pr_insert_result, pr_update_result = self.bulk_insert(
                 self.pull_requests_table,
-                update=source_prs['update'], unique_columns=pr_action_map['insert']['augur'],
-                insert=prs_insert, update_columns=pr_action_map['update']['augur']
+                update=source_prs['update'], unique_columns=pr_action_map['insert']['augur'], #pr_src_id
+                insert=prs_insert, update_columns=pr_action_map['update']['augur'] #pr_src_state
             )
 
             source_data = source_prs['insert'] + source_prs['update']
@@ -880,6 +880,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 'augur': ['pull_request_id', 'pr_src_id']
             }
         }
+        #self, new_data, table_values, table_pkey, action_map={}, in_memory=True
         source_labels_insert, _ = self.organize_needed_data(
             labels_all, augur_table=self.pull_request_labels_table, action_map=label_action_map
         )
