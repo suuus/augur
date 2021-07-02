@@ -54,7 +54,7 @@ class WorkerGitInterfaceable(Worker):
             try:
                 self.init_oauths(self.platform)
             except AttributeError:
-                self.logger.error("Worker not configured to use API key!")      
+                self.logger.error("Worker not configured to use API key!")
         else:
             self.oauths = [{'oauth_id': 0}]
 
@@ -1064,7 +1064,7 @@ class WorkerGitInterfaceable(Worker):
             )
 
 
-    #Indexerror somewhere 
+    #Indexerror somewhere
     def multi_thread_urls(self, all_urls, max_attempts=5, platform='github'):
         """
         :param all_urls: list of tuples
@@ -1171,6 +1171,8 @@ class WorkerGitInterfaceable(Worker):
             s.sql.select(self.get_relevant_columns(table, action_map)).where(where_clause)
         ).fetchall()
 
+        self.logger.info(f"Table Values: {table_values}")
+
         page_number = 1
         multiple_pages = False
         need_insertion = []
@@ -1234,6 +1236,15 @@ class WorkerGitInterfaceable(Worker):
                                     for index in range(0, len(page_data_keys)):
                                         new_page_data += page_data[page_data_keys[index]]
                                     page_data = new_page_data
+                            elif url == 'https://gerrit.automotivelinux.org/gerrit/changes/?q=changes&o=LABELS':
+                                new_page_data = []
+                                for data in page_data:
+                                    for label in data['labels']:
+                                        new_data = data.copy()
+                                        del new_data['labels']
+                                        new_data['label'] = label
+                                        new_page_data.append(new_data)
+                                page_data = new_page_data
                             success = True
                             break
                         except:
