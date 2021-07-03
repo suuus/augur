@@ -127,7 +127,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                         if data['errors'][0]['type'] == 'NOT_FOUND':
                             self.logger.warning(
                                 "Github repo was not found or does not exist for "
-                                f"endpoint: {url}\n"
+                                f"endpoint: {base_url}\n"
                             )
                             break
                         if data['errors'][0]['type'] == 'RATE_LIMITED':
@@ -388,7 +388,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             }
         }
 
-        source_prs = self.new_paginate_endpoint(
+        source_prs = self.paginate_endpoint(
             pr_url, action_map=pr_action_map, table=self.pull_requests_table,
             where_clause=self.pull_requests_table.c.repo_id == self.repo_id
         )
@@ -454,6 +454,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             } for pr in source_prs['insert']
         ]
 
+        #The b_pr_src_id bug comes from here
         if len(source_prs['insert']) > 0 or len(source_prs['update']) > 0:
             pr_insert_result, pr_update_result = self.bulk_insert(
                 self.pull_requests_table,
@@ -524,7 +525,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         }
 
         # TODO: add relational table so we can include a where_clause here
-        pr_comments = self.new_paginate_endpoint(
+        pr_comments = self.paginate_endpoint(
             comments_url, action_map=comment_action_map, table=self.message_table
         )
 
@@ -602,7 +603,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         }
 
         #list to hold contributors needing insertion or update
-        pr_events = self.new_paginate_endpoint(
+        pr_events = self.paginate_endpoint(
             events_url, table=self.pull_request_events_table, action_map=event_action_map,
             where_clause=self.pull_request_events_table.c.pull_request_id.in_(
                 set(pd.DataFrame(pk_source_prs)['pull_request_id'])
@@ -674,13 +675,14 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             self.pull_request_reviews_table, review_action_map
         )
 
+        #I don't know what else this could be used for so I'm using it for the function call
         table_values = self.db.execute(s.sql.select(cols_to_query).where(
             self.pull_request_reviews_table.c.pull_request_id.in_(
                     set(pd.DataFrame(pk_source_prs)['pull_request_id'])
                 ))).fetchall()
 
-        source_reviews_insert, source_reviews_update = self.new_organize_needed_data(
-            pr_pk_source_reviews, augur_table=self.pull_request_reviews_table,
+        source_reviews_insert, source_reviews_update = self.organize_needed_data(
+            pr_pk_source_reviews, table_values=table_values,
             action_map=review_action_map
         )
 
@@ -746,7 +748,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         in_clause = [] if len(both_pr_review_pk_source_reviews) == 0 else \
             set(pd.DataFrame(both_pr_review_pk_source_reviews)['pr_review_id'])
 
-        review_msgs = self.new_paginate_endpoint(
+        review_msgs = self.paginate_endpoint(
             review_msg_url, action_map=review_msg_action_map, table=self.message_table,
             where_clause=self.message_table.c.msg_id.in_(
                 [
@@ -762,6 +764,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         )
         self.write_debug_data(review_msgs, 'review_msgs')
 
+        #Throwing value errors. 'cannot use name of an existing column for indicator column'
         review_msgs['insert'] = self.enrich_cntrb_id(
             review_msgs['insert'], 'user.login', action_map_additions={
                 'insert': {
@@ -878,8 +881,14 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 'augur': ['pull_request_id', 'pr_src_id']
             }
         }
-        source_labels_insert, _ = self.new_organize_needed_data(
-            labels_all, augur_table=self.pull_request_labels_table, action_map=label_action_map
+
+
+        table_values_pr_labels = self.db.execute(
+            s.sql.select(self.get_relevant_columns(self.pull_request_labels_table,label_action_map))
+        ).fetchall()
+
+        source_labels_insert, _ = self.organize_needed_data(
+            labels_all, table_values=table_values_pr_labels, action_map=label_action_map
         )
         labels_insert = [
             {
@@ -904,8 +913,13 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 'augur': ['pull_request_id', 'pr_reviewer_src_id']
             }
         }
-        source_reviewers_insert, _ = self.new_organize_needed_data(
-            reviewers_all, augur_table=self.pull_request_reviewers_table,
+
+        table_values_issue_labels = self.db.execute(
+            s.sql.select(self.get_relevant_columns(self.pull_request_reviewers_table,reviewer_action_map))
+        ).fetchall()
+
+        source_reviewers_insert, _ = self.organize_needed_data(
+            reviewers_all, table_values=table_values_issue_labels,
             action_map=reviewer_action_map
         )
         source_reviewers_insert = self.enrich_cntrb_id(
@@ -935,8 +949,14 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 'augur': ['pull_request_id', 'pr_assignee_src_id']
             }
         }
-        source_assignees_insert, _ = self.new_organize_needed_data(
-            assignees_all, augur_table=self.pull_request_assignees_table,
+
+
+        table_values_assignees_labels = self.db.execute(
+            s.sql.select(self.get_relevant_columns(self.pull_request_assignees_table,assignee_action_map))
+        ).fetchall()
+
+        source_assignees_insert, _ = self.organize_needed_data(
+            assignees_all, table_values=table_values_assignees_labels,
             action_map=assignee_action_map
         )
         source_assignees_insert = self.enrich_cntrb_id(
@@ -967,8 +987,12 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             }
         }
 
-        source_meta_insert, _ = self.new_organize_needed_data(
-            meta_all, augur_table=self.pull_request_meta_table, action_map=meta_action_map
+        table_values_pull_request_meta = self.db.execute(
+            s.sql.select(self.get_relevant_columns(self.pull_request_meta_table,meta_action_map))
+        ).fetchall()
+
+        source_meta_insert, _ = self.organize_needed_data(
+            meta_all, table_values=table_values_pull_request_meta, action_map=meta_action_map
         )
         source_meta_insert = self.enrich_cntrb_id(
             source_meta_insert, 'user.login', action_map_additions={
