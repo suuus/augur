@@ -1234,6 +1234,15 @@ class WorkerGitInterfaceable(Worker):
                                     for index in range(0, len(page_data_keys)):
                                         new_page_data += page_data[page_data_keys[index]]
                                     page_data = new_page_data
+                            elif url == 'https://gerrit.automotivelinux.org/gerrit/changes/?q=changes&o=LABELS':
+                                new_page_data = []
+                                for data in page_data:
+                                    for label in data['labels']:
+                                        new_data = data.copy()
+                                        del new_data['labels']
+                                        new_data['label'] = label
+                                        new_page_data.append(new_data)
+                                page_data = new_page_data
                             success = True
                             break
                         except:
