@@ -54,7 +54,7 @@ class WorkerGitInterfaceable(Worker):
             try:
                 self.init_oauths(self.platform)
             except AttributeError:
-                self.logger.error("Worker not configured to use API key!")      
+                self.logger.error("Worker not configured to use API key!")
         else:
             self.oauths = [{'oauth_id': 0}]
 
@@ -1064,7 +1064,7 @@ class WorkerGitInterfaceable(Worker):
             )
 
 
-    #Indexerror somewhere 
+    #Indexerror somewhere
     def multi_thread_urls(self, all_urls, max_attempts=5, platform='github'):
         """
         :param all_urls: list of tuples
@@ -1170,6 +1170,8 @@ class WorkerGitInterfaceable(Worker):
         table_values = self.db.execute(
             s.sql.select(self.get_relevant_columns(table, action_map)).where(where_clause)
         ).fetchall()
+
+        self.logger.info(f"Table Values: {table_values}")
 
         page_number = 1
         multiple_pages = False

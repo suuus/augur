@@ -60,7 +60,7 @@ class Worker():
 
         self._root_augur_dir = Worker.ROOT_AUGUR_DIR
 
-        # count of tuples inserted in the database (to store stats for each task in op tables) 
+        # count of tuples inserted in the database (to store stats for each task in op tables)
         self.update_counter = 0
         self.insert_counter = 0
         self._results_counter = 0
@@ -89,7 +89,7 @@ class Worker():
         worker_info = self.augur_config.get_value('Workers', self.config['worker_type'])
         self.config.update(worker_info)
 
-        #is it just grabbing the first avalable port for api calls? 
+        #is it just grabbing the first avalable port for api calls?
         worker_port = self.config['port']
         while True:
             try:
@@ -1467,9 +1467,13 @@ class Worker():
         self.results_counter = 0
 
     def get_relevant_columns(self, table, action_map={}):
+        self.logger.info(f"Table: {table}")
+        self.logger.info(f"Action Map: {action_map}")
         columns = copy.deepcopy(action_map['update']['augur']) if 'update' in action_map else []
         columns += action_map['value_update']['augur'] if 'value_update' in action_map else []
         columns += action_map['insert']['augur'] if 'insert' in action_map else []
+        self.logger.info(f"Columns: {columns}")
+        self.logger.info(f"What is This? : {table.c[column]}")
         return [table.c[column] for column in
             columns + [list(table.primary_key)[0].name]]
 
