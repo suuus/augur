@@ -1176,8 +1176,6 @@ class WorkerGitInterfaceable(Worker):
             s.sql.select(self.get_relevant_columns(table, action_map)).where(where_clause)
         ).fetchall()
 
-        self.logger.info(f"Table Values: {table_values}")
-
         page_number = 1
         multiple_pages = False
         need_insertion = []
@@ -1282,7 +1280,7 @@ class WorkerGitInterfaceable(Worker):
             all_data += page_data
 
             if not forward_pagination:
-                
+
                 # Checking contents of requests with what we already have in the db
                 page_insertions, page_updates = self.organize_needed_data(
                     page_data, table_values, list(table.primary_key)[0].name,
