@@ -32,9 +32,7 @@ class Worker(Persistant):
 
         #TODO: consider taking parts of this out for the base class and then overriding it in WorkerGitInterfaceable
         self.config.update({'offline_mode': False})
-
         self.config.update(config)
-
 
         #base
         self.task_info = None
