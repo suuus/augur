@@ -16,12 +16,10 @@
 # from sqlalchemy.sql.expression import bindparam
 from workers.worker_git_integration import WorkerGitInterfaceable
 
-## Don't forget to change Config.py for housekeeper and workers
-
 class GerritChangeRequestWorker(WorkerGitInterfaceable):
     """
-    Worker that collects Pull Request related data from the
-    Github API and stores it in our database.
+    Worker that collects Change Request related data from the
+    Gerrit API and stores it in our database.
 
     :param task: most recent task the broker added to the worker's queue
     :param config: holds info like api keys, descriptions, and database connection strings
@@ -50,7 +48,6 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
         self.tool_version = '0.0.1'
         self.data_source = 'Gerrit API'
 
-## Bsic pull request model
     def change_requests_model(self, entry_info, repo_id):
         """Pull Request data collection function. Query GitHub API for PhubRs.
 
@@ -60,10 +57,15 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
 
         self.logger.info("Beginning collection of Change Requests...\n")
 
+        # Url to collect the change request json data from gerrit api
+        #It is hard coded as the AGL api because we do not collect
+        #project data for gerrit so the housekeeper cannot generate a valid job for the worker
         cr_url = (
             "https://gerrit.automotivelinux.org/gerrit/changes/?q=changes&no-limit"
         )
 
+        # dict used in the worker_base.py, worker_git_integration.py, and worker_persistance.py files to determine
+        # whether newly collected data needs to be added to table, or whether a record needs to be update
         cr_action_amp = {
             'insert': {
                 'source': ['id'],
@@ -75,6 +77,9 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
             }
         }
 
+        # hits the cr_url to collect the data and organizes it into json and returns it here
+        # returns a dict with three keys ('insert', 'update', and 'all')
+        # Method file: worker_git_integration.py
         source_crs = self.paginate_endpoint(
             cr_url, action_map=cr_action_amp, table=self.change_requests_table, platform="gerrit")
 
@@ -82,11 +87,15 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
 
         self.write_debug_data(source_crs, 'source_prs')
 
+        # if no data was collected then register the task as completed
         if len(source_crs['all']) == 0:
-            self.logger.info("There are no prs for this repository.\n")
+            self.logger.info("There are no crs for this repository.\n")
             self.register_task_completion(self.task_info, self.repo_id, 'change_requests')
             return
 
+        # Takes all the data that needs inserting and extracts the fields that needs inserted in the database
+        # This is organized as an array of dicts
+        # The keys in each dict are the same name as the field names in the database tables
         crs_insert = [
             {
                 'change_src_id': cr['id'],
@@ -103,40 +112,53 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
             } for cr in source_crs['insert']
         ]
 
+        # If there are crs to insert of update then call bulk_insert
         if len(source_crs['insert']) > 0 or len(source_crs['update']) > 0:
+
+            # Call bulk_insert to insert and update all the needed data into the database
+            # Method file: worker_git_integration.py
             pr_insert_result, pr_update_result = self.bulk_insert(
                 self.change_requests_table,
                 update=source_crs['update'], unique_columns=cr_action_amp['insert']['augur'],
                 insert=crs_insert, update_columns=cr_action_amp['update']['augur']
             )
 
+        # Create an array of chnage_ids
+        # A change_id is needed to collect comments and reviewers so this array is passed to those models
         self.change_ids = []
         for cr in source_crs['insert']:
             self.change_ids.append(cr['id'])
 
         self.logger.info("Finished gathering change requests")
 
+        # If there are change_ids then call models, to collect comments, labels, and reviewers
         if self.change_ids:
             self.change_request_comments_model()
             self.change_request_nested_data_model()
 
         self.register_task_completion(self.task_info, self.repo_id, 'change_requests')
 
-## Comment out whole method if not available.
+    # Collect comments related to change requests
     def change_request_comments_model(self):
 
         self.logger.info("Starting change request message collection")
 
         self.logger.info(f"{len(self.change_ids)} change requests to collect messages for")
 
+        # Loop through the change_ids to collect all the comments for each change request
         for index, change_id in enumerate(self.change_ids, start=1):
 
             self.logger.info(f"Message collection {index} of {len(self.change_ids)}")
 
+            # Url to collect the change request comments json data from gerrit api
+            #It is hard coded as the AGL api because we do not collect
+            #project data for gerrit so the housekeeper cannot generate a valid job for the worker
             comments_url = (
                 'https://gerrit.automotivelinux.org/gerrit/changes/{}/comments'.format(change_id)
             )
 
+            # dict used in the worker_base.py, worker_git_integration.py, and worker_persistance.py files to determine
+            # whether newly collected data needs to be added to table, or whether a record needs to be update
             comment_action_map = {
                 'insert': {
                     'source': ['id'],
@@ -144,6 +166,9 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
                 }
             }
 
+            # hits the comments_url to collect the data and organizes it into json and returns it here
+            # returns a dict with three keys ('insert', 'update', and 'all')
+            # Method file: worker_git_integration.py
             cr_comments = self.paginate_endpoint(
                 comments_url, action_map=comment_action_map, table=self.change_requests_messages_table, platform="gerrit"
             )
@@ -152,6 +177,9 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
 
             # pr_comments['insert'] = self.text_clean(pr_comments['insert'], 'message')
 
+            # Takes all the data that needs inserting and extracts the fields that needs inserted in the database
+            # This is organized as an array of dicts
+            # The keys in each dict are the same name as the field names in the database tables
             cr_comments_insert = [
                 {
                     'msg_id': comment['id'],
@@ -168,6 +196,7 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
                 } for comment in cr_comments['insert']
             ]
 
+            # Insert data into database
             self.bulk_insert(self.change_requests_messages_table, insert=cr_comments_insert)
 
         self.logger.info("Finished change request message collection")
@@ -177,10 +206,15 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
 
             self.logger.info("Starting Labels Colletion")
 
+            # Url to collect the change request labels json data from gerrit api
+            #It is hard coded as the AGL api because we do not collect
+            #project data for gerrit so the housekeeper cannot generate a valid job for the worker
             labels_url = (
                 'https://gerrit.automotivelinux.org/gerrit/changes/?q=changes&o=LABELS'
             )
 
+            # dict used in the worker_base.py, worker_git_integration.py, and worker_persistance.py files to determine
+            # whether newly collected data needs to be added to table, or whether a record needs to be update
             labels_action_map = {
                 'insert': {
                     'source': ['id', 'label'],
@@ -188,12 +222,18 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
                 }
             }
 
+            # hits the labels_url to collect the data and organizes it into json and returns it here
+            # returns a dict with three keys ('insert', 'update', and 'all')
+            # Method file: worker_git_integration.py
             cr_labels = self.paginate_endpoint(
                 labels_url, action_map=labels_action_map, table=self.change_request_labels_table, platform="gerrit"
             )
 
             self.write_debug_data(cr_labels, 'cr_labels')
 
+            # Takes all the data that needs inserting and extracts the fields that needs inserted in the database
+            # This is organized as an array of dicts
+            # The keys in each dict are the same name as the field names in the database tables
             cr_labels_insert = [
                 {
                     'change_src_id': label['id'],
@@ -207,23 +247,30 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
                 } for label in cr_labels['insert']
             ]
 
-
+            # Insert data into database
             self.bulk_insert(self.change_request_labels_table, insert=cr_labels_insert)
 
             self.logger.info("Finished Labels Connection")
 
             self.logger.info("Starting change request reviewers collection")
 
+            # Loop through the change_ids to collect all the reviewers for each change request
             self.logger.info(f"{len(self.change_ids)} change requests to collect reviewers for")
 
+            # Loop through the change_ids to collect all the comments for each change request
             for index, change_id in enumerate(self.change_ids, start=1):
 
                 self.logger.info(f"Reviewers collection {index} of {len(self.change_ids)}")
 
+                # Url to collect the change request reviewers json data from gerrit api
+                #It is hard coded as the AGL api because we do not collect
+                #project data for gerrit so the housekeeper cannot generate a valid job for the worker
                 reviewers_url = (
                     'https://gerrit.automotivelinux.org/gerrit/changes/{}/reviewers'.format(change_id)
                 )
 
+                # dict used in the worker_base.py, worker_git_integration.py, and worker_persistance.py files to determine
+                # whether newly collected data needs to be added to table, or whether a record needs to be update
                 reviewer_action_map = {
                     'insert': {
                         'source': ['_account_id'],
@@ -231,13 +278,18 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
                     }
                 }
 
-                # TODO: add relational table so we can include a where_clause here
+                # hits the reviewers_url to collect the data and organizes it into json and returns it here
+                # returns a dict with three keys ('insert', 'update', and 'all')
+                # Method file: worker_git_integration.py
                 cr_reviewers = self.paginate_endpoint(
                     reviewers_url, action_map=reviewer_action_map, table=self.change_request_reviewers_table, platform="gerrit"
                 )
 
                 self.write_debug_data(cr_reviewers, 'cr_reviewers')
 
+                # Takes all the data that needs inserting and extracts the fields that needs inserted in the database
+                # This is organized as an array of dicts
+                # The keys in each dict are the same name as the field names in the database tables
                 cr_reviewers_insert = [
                     {
                         'reviewer_id': int(reviewer['_account_id']),
@@ -254,4 +306,5 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
                     } for reviewer in cr_reviewers['insert']
                 ]
 
+                # Insert data into database
                 self.bulk_insert(self.change_request_reviewers_table, insert=cr_reviewers_insert)
