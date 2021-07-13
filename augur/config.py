@@ -243,11 +243,6 @@ default_config = {
             ]
             },
             "Workers": {
-                "contributor_breadth_worker": {
-                    "port": contributor_breadth_worker_p,
-                    "switch": 0,
-                    "workers": 1
-                },
                 "facade_worker": {
                     "port": facade_worker_p,
                     "repo_directory": "repos/",
@@ -259,25 +254,10 @@ default_config = {
                     "switch": 1,
                     "workers": 1
                 },
-                "insight_worker": {
-                    "port": insight_worker_p,
-                    "metrics": {"issues-new": "issues", "code-changes": "commit_count", "code-changes-lines": "added",
-                               "reviews": "pull_requests", "contributors-new": "new_contributors"},
-                    "confidence_interval": 95,
-                    "contamination": 0.1,
-                    "switch": 1,
-                    "workers": 1,
-                    "training_days": 1000,
-                    "anomaly_days": 14
-                },
+                
                 "linux_badge_worker": {
                     "port": linux_badge_worker_p ,
                     "switch": 1,
-                    "workers": 1
-                },
-                "metric_status_worker": {
-                    "port": metric_status_worker_p,
-                    "switch": 0,
                     "workers": 1
                 },
                 "pull_request_worker": {
@@ -290,82 +270,13 @@ default_config = {
                     "switch": 1,
                     "workers": 1
                 },
-                "value_worker": {
-                    "port": value_worker_p,
-                    "scc_bin": "scc",
-                    "switch": 0,
-                    "workers": 1
-                },
-                "contributor_worker": {
-                    "port": contributor_worker_p,
-                    "switch": 0,
-                    "workers": 1
-                },
-                "gitlab_issues_worker": {
-                    "port": gitlab_issues_worker_p,
-                    "switch": 1,
-                    "workers": 1
-                },
                 "release_worker": {
                     "port": release_worker_p,
                     "switch": 1,
                     "workers": 1
                 },
-                "gitlab_merge_request_worker": {
-                    "port": gitlab_merge_request_worker_p,
-                    "switch": 0,
-                    "workers": 1
-                },
-                "message_insights_worker": {
-                    "port": message_insights_worker_p,
-                    "switch": 0,
-                    "workers": 1,
-                    "insight_days": 30,
-                    "models_dir": "message_models"
-                },
-                "pull_request_analysis_worker": {
-                    "port": pull_request_analysis_worker_p,
-                    "switch": 0,
-                    "workers": 1,
-                    "insight_days": 30
-                },
-                "discourse_analysis_worker":{
-                    "port" : discourse_analysis_worker_p,
-                    "switch": 0,
-                    "workers": 1
-                },
-                "message_insights_worker": {
-                    "port": message_insights_worker_p,
-                    "switch": 0,
-                    "workers": 1,
-                    "insight_days": 30,
-                    "models_dir": "message_models"
-                },
-                "pull_request_analysis_worker": {
-                    "port": pull_request_analysis_worker_p,
-                    "switch": 0,
-                    "workers": 1,
-                    "insight_days": 30
-                },
-                "discourse_analysis_worker":{
-                    "port" : discourse_analysis_worker_p,
-                    "switch": 0,
-                    "workers": 1
-                },
-                "clustering_worker": {
-                    "port": clustering_worker_p,
-                    "switch": 0,
-                    "workers": 1,
-                    "max_df" : 0.9,
-                    "max_features" : 1000,
-                    "min_df": 0.1,
-                    "num_clusters" : 4
-                },
-                "deps_worker": {
-                    "port": deps_worker_p,
-                    "switch": 0,
-                    "workers": 1
-                }
+                
+ 
         },
         "Facade": {
             "check_updates": 1,

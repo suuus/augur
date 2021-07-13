@@ -22,8 +22,8 @@ setup(
     description=__short_description__,
     long_description=long_description,
     url=__url__,
-    author="Derek Howard",
-    author_email="derek@howderek.com",
+    author="Anuj Lamoria",
+    author_email="anujlamoria20@gmail.com",
     packages=find_packages(),
     license=__license__,
     classifiers=[
