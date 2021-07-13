@@ -11,6 +11,8 @@ function get_api_key_and_repo_path() {
   echo "Please provide a valid GitHub API key."
   echo "For more information on how to create the key, visit:"
   echo "https://oss-augur.readthedocs.io/en/dev/getting-started/installation.html#backend"
+  echo "Here is the link on GitHub for tokens:"
+  echo "https://github.com/settings/tokens"
   echo "** This is required for Augur to gather data ***"
   read -p "GitHub API Key: " github_api_key
   echo
@@ -19,6 +21,8 @@ function get_api_key_and_repo_path() {
   echo "Please provide a valid GitLab API key."
   echo "For more information on how to create the key, visit:"
   echo "https://oss-augur.readthedocs.io/en/dev/getting-started/installation.html#backend"
+  echo "Here is the link on GitLab for tokens:"
+  echo "https://gitlab.com/profile/personal_access_tokens"
   echo "** This is required for Augur to gather data ***"
   read -p "GitLab API Key: " gitlab_api_key
   echo
@@ -76,6 +80,10 @@ function set_db_credentials() {
   echo
 
   if [[ $install_locally == 'false' ]]; then
+    echo "For host: Enter the IP address for your postgres database"
+    echo "For Port: Enter the port the postgres database is usually hosted on ... usually it is 5432"
+    echo
+
     read -p "Host: " host
     read -p "Port: " port
   fi
@@ -135,12 +143,16 @@ do
     $install_locally )
         echo "Please enter the credentials for the default (or maintenance) user for your instance."
         echo "These will be used to log in to the database so that Augur can initalize a new database and install the schema for you."
+        echo
+        echo "These inputs that you need to enter are the Database name, default use, and default user's password for the postgres database that has been made."
 
         read -p "Default DB name: " default_db_name
         read -p "Default user: " default_user
         read -p "Default user's password: " default_password
 
         echo
+        echo "For host: Enter the IP address for your postgres database"
+        echo "For Port: Enter the port the postgres database is usually hosted on ... usually it is 5432"
         echo "Please enter the host on which your instance is running, and the port it is listening on."
         read -p "Host: " host
         read -p "Port: " port
@@ -150,6 +162,10 @@ do
         echo "Now, please choose the credentials for the database you would create."
         echo "If you are not sure to put , we recommend naming both your database and user as augur."
         echo "The choice of password if up to you; just make sure you don't forget it."
+        echo 
+        echo "For Database: you can use anything you want, or just 'augur'"
+        echo "For User: you can use anything you want, or just 'augur'"
+        echo "For Password: Use any password that you want"
         echo
         set_db_credentials true
 

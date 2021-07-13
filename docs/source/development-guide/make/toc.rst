@@ -11,6 +11,7 @@ If you have questions or would like to help please open an issue on GitHub_.
    :maxdepth: 1
 
    installation
+   installation-inputs
    development
    testing
    documentation
