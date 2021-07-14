@@ -47,6 +47,8 @@ class GitLabIssuesWorker(WorkerGitInterfaceable):
         self.msg_id_inc = self.get_max_id('message', 'msg_id')
         self.logger.info('Beginning the process of GitLab Issue Collection...'.format(str(os.getpid())))
         gitlab_base = 'https://gitlab.com/api/v4'
+
+        #TODO: Figure out why this threw an error a while ago.
         self.query_gitlab_contributors(task, repo_id)
 
         # adding the labels attribute in the query params to avoid additional API calls
