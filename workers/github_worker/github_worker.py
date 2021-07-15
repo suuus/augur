@@ -156,7 +156,8 @@ class GitHubWorker(WorkerGitInterfaceable):
             )
 
             return
-
+        
+        #Connection error stemming from pagination of issues
         source_issues = self.paginate_endpoint(
             issues_url, action_map=action_map,
             table=self.issues_table, where_clause=self.issues_table.c.repo_id == self.repo_id,
