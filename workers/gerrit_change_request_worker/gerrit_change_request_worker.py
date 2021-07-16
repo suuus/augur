@@ -33,7 +33,7 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
         models = ['change_requests']
 
         # Define the tables needed to insert, update, or delete on
-        data_tables = ['change_requests', 'change_requests_messages', 'change_request_reviewers', 'change_request_labels']
+        data_tables = ['change_requests', 'change_requests_messages', 'change_request_reviewers', 'change_request_labels', 'change_request_commits']
         operations_tables = ['worker_history', 'worker_job']
 
         self.deep_collection = True
@@ -130,6 +130,8 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
             self.change_ids.append(cr['id'])
 
         self.logger.info("Finished gathering change requests")
+
+        self.change_request_commits_model()
 
         # If there are change_ids then call models, to collect comments, labels, and reviewers
         if self.change_ids:
@@ -308,3 +310,72 @@ class GerritChangeRequestWorker(WorkerGitInterfaceable):
 
                 # Insert data into database
                 self.bulk_insert(self.change_request_reviewers_table, insert=cr_reviewers_insert)
+
+
+    def change_request_commits_model(self):
+        """Pull Request data collection function. Query GitHub API for PhubRs.
+
+        :param entry_info: A dictionary consisiting of 'git_url' and 'repo_id'
+        :type entry_info: dict
+        """
+
+        self.logger.info("Beginning collection of Change Request Commits...\n")
+
+        # Url to collect the change request json data from gerrit api
+        #It is hard coded as the AGL api because we do not collect
+        #project data for gerrit so the housekeeper cannot generate a valid job for the worker
+        cr_commits_url = (
+            "https://gerrit.automotivelinux.org/gerrit/changes/?q=status:abandoned&o=ALL_REVISIONS&o=ALL_COMMITS&o=ALL_FILES&no-limit"
+        )
+
+        # dict used in the worker_base.py, worker_git_integration.py, and worker_persistance.py files to determine
+        # whether newly collected data needs to be added to table, or whether a record needs to be update
+        cr_commits_action_map = {
+            'insert': {
+                'source': ['cmt_id'],
+                'augur': ['cr_cmt_id']
+            }
+        }
+
+        # hits the cr_url to collect the data and organizes it into json and returns it here
+        # returns a dict with three keys ('insert', 'update', and 'all')
+        # Method file: worker_git_integration.py
+        source_cr_commits = self.paginate_endpoint(
+            cr_commits_url, action_map=cr_commits_action_map, table=self.change_request_commits_table, platform="gerrit")
+
+        self.logger.info(f"{len(source_cr_commits['insert'])} change request commits to insert")
+
+        self.write_debug_data(source_cr_commits, 'source_prs')
+
+        # if no data was collected then register the task as completed
+        if len(source_cr_commits['all']) == 0:
+            self.logger.info("There are no crs for this repository.\n")
+            self.register_task_completion(self.task_info, self.repo_id, 'change_requests')
+            return
+
+        # Takes all the data that needs inserting and extracts the fields that needs inserted in the database
+        # This is organized as an array of dicts
+        # The keys in each dict are the same name as the field names in the database tables
+        cr_commits_insert = [
+            {
+                'change_src_id': cr_commit['id'],
+                'change_project': cr_commit['project'],
+                'change_branch': cr_commit['branch'],
+                'change_id': cr_commit['change_id'],
+                'cr_cmt_id': cr_commit['cmt_id'],
+                'cr_cmt_timestamp': cr_commit['cmt_timestamp'],
+                'cr_cmt_message': cr_commit['cmt_message'],
+                'tool_source': self.tool_source,
+                'tool_version': self.tool_version,
+                'data_source': 'Gerrit API'
+            } for cr_commit in source_cr_commits['insert']
+        ]
+
+        # If there are crs to insert of update then call bulk_insert
+        if len(source_cr_commits['insert']) > 0 or len(source_cr_commits['update']) > 0:
+
+            # Call bulk_insert to insert and update all the needed data into the database
+            # Method file: worker_git_integration.py
+            self.bulk_insert(self.change_request_commits_table, unique_columns=cr_commits_action_map['insert']['augur'], insert=cr_commits_insert)
+
+        self.logger.info("Finished gathering change request commits")

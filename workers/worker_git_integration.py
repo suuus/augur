@@ -1248,6 +1248,20 @@ class WorkerGitInterfaceable(Worker):
                                         new_data['label'] = label
                                         new_page_data.append(new_data)
                                 page_data = new_page_data
+                            elif url == 'https://gerrit.automotivelinux.org/gerrit/changes/?q=status:abandoned&o=ALL_REVISIONS&o=ALL_COMMITS&o=ALL_FILES&no-limit':
+                                    new_page_data = []
+                                    i = 0
+                                    for data in page_data:
+                                        for revision_id in data['revisions']:
+                                            revision = data['revisions'][revision_id]
+                                            commit = revision['commit']
+                                            new_data = data.copy()
+                                            del new_data['revisions']
+                                            new_data['cmt_id'] = revision_id
+                                            new_data['cmt_timestamp'] = revision['created']
+                                            new_data['cmt_message'] = commit['message']
+                                            new_page_data.append(new_data)
+                                    page_data = new_page_data
                             success = True
                             break
                         except:
