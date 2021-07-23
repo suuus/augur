@@ -54,7 +54,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         self.tool_version = '1.0.0'
         self.data_source = 'GitHub API'
 
-        #Needs to be an attribute of the class for incremental database insert using paginate_endpoint
+        #Needs to be an attribute of the class for incremental database insert using new_paginate_endpoint
         self.pk_source_prs = []
 
     def graphql_paginate(self, query, data_subjects, before_parameters=None):
@@ -394,7 +394,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         }
 
         #Use a parent method in order to iterate through pull request pages
-        #Define a method to pass paginate_endpoint so that prs can be inserted incrementally
+        #Define a method to pass new_paginate_endpoint so that prs can be inserted incrementally
 
         def pk_source_increment_insert(inc_source_prs, action_map):
 
@@ -404,6 +404,10 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 self.logger.info("There are no prs for this repository.\n")
                 self.register_task_completion(self.task_info, self.repo_id, 'pull_requests')
                 return
+
+
+            self.logger.info(f"inc_source_prs is: {inc_source_prs} and the action map is {action_map}...")
+
 
             inc_source_prs['insert'] = self.enrich_cntrb_id(
                 inc_source_prs['insert'], 'user.login', action_map_additions={
@@ -491,14 +495,14 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             
 
         #paginate endpoint with stagger enabled so that the above method can insert every 500
-        source_prs = self.paginate_endpoint(
+        source_prs = self.new_paginate_endpoint(
             pr_url, action_map=pr_action_map, table=self.pull_requests_table,
             where_clause=self.pull_requests_table.c.repo_id == self.repo_id, 
             stagger=True, insertion_method=pk_source_increment_insert
         )
 
         #Use the increment insert method in order to do the 
-        #remaining pages of the paginated endpoint that weren't inserted inside the paginate_endpoint method
+        #remaining pages of the paginated endpoint that weren't inserted inside the new_paginate_endpoint method
         pk_source_increment_insert(source_prs,pr_action_map)
         
         pk_source_prs = self.pk_source_prs
@@ -550,7 +554,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         }
 
         # TODO: add relational table so we can include a where_clause here
-        pr_comments = self.paginate_endpoint(
+        pr_comments = self.new_paginate_endpoint(
             comments_url, action_map=comment_action_map, table=self.message_table, stagger=True
         )
 
@@ -628,7 +632,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         }
 
         #list to hold contributors needing insertion or update
-        pr_events = self.paginate_endpoint(
+        pr_events = self.new_paginate_endpoint(
             events_url, table=self.pull_request_events_table, action_map=event_action_map,
             where_clause=self.pull_request_events_table.c.pull_request_id.in_(
                 set(pd.DataFrame(pk_source_prs)['pull_request_id'])
@@ -706,7 +710,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                     set(pd.DataFrame(pk_source_prs)['pull_request_id'])
                 ))).fetchall()
 
-        source_reviews_insert, source_reviews_update = self.organize_needed_data(
+        source_reviews_insert, source_reviews_update = self.new_organize_needed_data(
             pr_pk_source_reviews, table_values=table_values,
             action_map=review_action_map
         )
@@ -773,7 +777,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         in_clause = [] if len(both_pr_review_pk_source_reviews) == 0 else \
             set(pd.DataFrame(both_pr_review_pk_source_reviews)['pr_review_id'])
 
-        review_msgs = self.paginate_endpoint(
+        review_msgs = self.new_paginate_endpoint(
             review_msg_url, action_map=review_msg_action_map, table=self.message_table,
             where_clause=self.message_table.c.msg_id.in_(
                 [
@@ -912,7 +916,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             s.sql.select(self.get_relevant_columns(self.pull_request_labels_table,label_action_map))
         ).fetchall()
 
-        source_labels_insert, _ = self.organize_needed_data(
+        source_labels_insert, _ = self.new_organize_needed_data(
             labels_all, table_values=table_values_pr_labels, action_map=label_action_map
         )
         labels_insert = [
@@ -943,7 +947,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             s.sql.select(self.get_relevant_columns(self.pull_request_reviewers_table,reviewer_action_map))
         ).fetchall()
 
-        source_reviewers_insert, _ = self.organize_needed_data(
+        source_reviewers_insert, _ = self.new_organize_needed_data(
             reviewers_all, table_values=table_values_issue_labels,
             action_map=reviewer_action_map
         )
@@ -980,7 +984,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             s.sql.select(self.get_relevant_columns(self.pull_request_assignees_table,assignee_action_map))
         ).fetchall()
 
-        source_assignees_insert, _ = self.organize_needed_data(
+        source_assignees_insert, _ = self.new_organize_needed_data(
             assignees_all, table_values=table_values_assignees_labels,
             action_map=assignee_action_map
         )
@@ -1016,7 +1020,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             s.sql.select(self.get_relevant_columns(self.pull_request_meta_table,meta_action_map))
         ).fetchall()
 
-        source_meta_insert, _ = self.organize_needed_data(
+        source_meta_insert, _ = self.new_organize_needed_data(
             meta_all, table_values=table_values_pull_request_meta, action_map=meta_action_map
         )
         source_meta_insert = self.enrich_cntrb_id(
