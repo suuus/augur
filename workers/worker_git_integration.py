@@ -320,6 +320,7 @@ class WorkerGitInterfaceable(Worker):
 
         # Query
         cntrb_pk_name = list(self.contributors_table.primary_key)[0].name
+        self.logger.info(f"cntrb_pk_name: {cntrb_pk_name}")
         session = s.orm.Session(self.db)
         inserted_pks = pd.DataFrame(
             session.query(
@@ -329,18 +330,24 @@ class WorkerGitInterfaceable(Worker):
                 self.contributors_table.c.cntrb_login, self.contributors_table.c[cntrb_pk_name]
             ).all(), columns=[cntrb_pk_name, 'cntrb_login', 'gh_node_id']
         ).to_dict(orient='records')
+        self.logger.info(f"inserted_pks: {inserted_pks}")
         session.close()
 
         # Prepare for merge
         source_columns = sorted(list(source_df.columns))
+        self.logger.info(f"source_columns: {source_columns}")
         necessary_columns = sorted(list(set(source_columns + cntrb_action_map['insert']['source'])))
+        self.logger.info(f"necessary_columns: {necessary_columns}")
         (source_table, inserted_pks_table), metadata, session = self._setup_postgres_merge(
             [
                 expanded_source_df[necessary_columns].to_dict(orient='records'),
                 inserted_pks
             ], sort=True
         )
+        self.logger.info(f"inserted_pks_table: {inserted_pks_table}")
+        self.logger.info(f"source_table: {source_table}")
         final_columns = [cntrb_pk_name] + sorted(list(set(necessary_columns)))
+        self.logger.info(f"final_columns: {final_columns}")
 
         # Merge
         source_pk = pd.DataFrame(
@@ -382,7 +389,7 @@ class WorkerGitInterfaceable(Worker):
         """
         self.logger.info(f"Querying contributors with given entry info: {entry_info}\n")
 
-        ## It absolutely doesn't matter if the contributor has already contributoed to a repo. it only matters that they exist in our table, and 
+        ## It absolutely doesn't matter if the contributor has already contributoed to a repo. it only matters that they exist in our table, and
         ## if the DO, then we DO NOT want to insert them again in any GitHub Method.
         github_url = entry_info['given']['github_url'] if 'github_url' in entry_info['given'] else entry_info['given']['git_url']
 
@@ -832,11 +839,11 @@ class WorkerGitInterfaceable(Worker):
         ### Here we are adding gitlab user information from the API
         ### Following Gabe's rework of the contributor worker.
 
-        ### The GitLab API will NEVER give you an email. It will let you 
-        ### Query an email, but never give you one. 
+        ### The GitLab API will NEVER give you an email. It will let you
+        ### Query an email, but never give you one.
         ### ## Gitlab email api: https://gitlab.com/api/v4/users?search=s@goggins.com
-        ### We don't need to update right now, so commenting out. 
-        ### TODO: SOLVE LOGIC. 
+        ### We don't need to update right now, so commenting out.
+        ### TODO: SOLVE LOGIC.
         # update_col_map = {'cntrb_email': 'email'}
         update_col_map = {}
         duplicate_col_map = {'gl_username': 'username'}
@@ -1177,12 +1184,12 @@ class WorkerGitInterfaceable(Worker):
                                             2, int(response.links['last']['url'].split('=')[-1]) + 1
                                         )
                                     ]
-                                try: 
+                                try:
                                     self.logger.info(f"urls boundry issue? for {urls} where they are equal to {url}.")
 
                                     urls = numpy.delete(urls, numpy.where(urls == url), axis=0)
-                                except: 
-                                    self.logger.info(f"ERROR with axis = 0 - Now attempting without setting axis for numpy.delete for {urls} where they are equal to {url}.")                                    
+                                except:
+                                    self.logger.info(f"ERROR with axis = 0 - Now attempting without setting axis for numpy.delete for {urls} where they are equal to {url}.")
                                     urls = numpy.delete(urls, numpy.where(urls == url))
 
                             elif response.status_code == 404:
