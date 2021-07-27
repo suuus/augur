@@ -256,7 +256,7 @@ class WorkerGitInterfaceable(Worker):
             source_df.copy(), [key] + action_map_additions['insert']['source']
         )
 
-        self.logger.info(f"expanded_source_df: {expanded_source_df}")
+        self.logger.info(f"expanded_source_df: {expanded_source_df.to_string()}")
 
         # Insert cntrbs that are not in db
 

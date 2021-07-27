@@ -508,9 +508,9 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             insertion_method=pk_source_increment_insert
         )
 
-        self.logger.info(
-            f"PR Action map is {pr_action_map} after source_prs. The source_prs are {source_prs}."
-        )
+        # self.logger.info(
+        #     f"PR Action map is {pr_action_map} after source_prs. The source_prs are {source_prs}."
+        # )
 
         #Use the increment insert method in order to do the
         #remaining pages of the paginated endpoint that weren't inserted inside the paginate_endpoint method
