@@ -256,7 +256,7 @@ class WorkerGitInterfaceable(Worker):
             source_df.copy(), [key] + action_map_additions['insert']['source']
         )
 
-        self.logger.info(f"expanded_source_df: {expanded_source_df.to_string()}")
+        # self.logger.info(f"expanded_source_df: {expanded_source_df.to_string()}")
 
         # Insert cntrbs that are not in db
 
@@ -270,14 +270,14 @@ class WorkerGitInterfaceable(Worker):
         table_values_cntrb = self.db.execute(
             s.sql.select(self.get_relevant_columns(self.contributors_table,cntrb_action_map))
         ).fetchall()
-        self.logger.info(f"table_values_cntrb: {table_values_cntrb}")
+        # self.logger.info(f"table_values_cntrb: {table_values_cntrb}")
 
         source_cntrb_insert, _ = self.organize_needed_data(
             expanded_source_df.to_dict(orient='records'), table_values=table_values_cntrb,
             action_map=cntrb_action_map
         )
 
-        self.logger.info(f"source_cntrb_insert: {source_cntrb_insert}")
+        # self.logger.info(f"source_cntrb_insert: {source_cntrb_insert}")
 
 
 
