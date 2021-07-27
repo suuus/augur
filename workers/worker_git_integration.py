@@ -370,15 +370,19 @@ class WorkerGitInterfaceable(Worker):
                 )
             ).all(), columns=final_columns
         )
+        self.logger.info(f"source_pk before _eval_json_columns: {source_pk}")
 
         # Cleanup merge
         source_pk = self._eval_json_columns(source_pk)
+        self.logger.info(f"source_pk after _eval_json_columns: {source_pk}")
         self._close_postgres_merge(metadata, session)
 
         self.logger.info(
             "Contributor id enrichment successful, result has "
             f"{len(source_pk)} data points.\n"
         )
+
+        self.logger.info(f"source_pk as dict: {source_pk.to_dict(orient='records')}")
 
         return source_pk.to_dict(orient='records')
 
