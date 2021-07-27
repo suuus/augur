@@ -331,7 +331,7 @@ class WorkerGitInterfaceable(Worker):
         ).to_dict(orient='records')
         session.close()
 
-        self.logger.info(f"ISAACM Contents of source_pk: {cntrb_pk_name.to_dict(orient='records')}")
+        self.logger.info(f"ISAACM Contents of source_pk: {cntrb_pk_name}")
 
         # Prepare for merge
         source_columns = sorted(list(source_df.columns))
