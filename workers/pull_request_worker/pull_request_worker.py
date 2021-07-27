@@ -100,8 +100,8 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
 
         for data_subject, nest in data_subjects.items():
 
-            self.logger.info(f'Beginning paginate process for field {data_subject} '
-                f'for query: {query}')
+            # self.logger.info(f'Beginning paginate process for field {data_subject} '
+            #     f'for query: {query}')
 
             page_count = 0
             while has_previous_page:
