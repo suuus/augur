@@ -373,6 +373,8 @@ class WorkerGitInterfaceable(Worker):
             f"{len(source_pk)} data points.\n"
         )
 
+        self.logger.info(f"ISAACM Contents of source_pk: {source_pk.to_dict(orient='records')}")
+
         return source_pk.to_dict(orient='records')
 
     def query_github_contributors(self, entry_info, repo_id):
