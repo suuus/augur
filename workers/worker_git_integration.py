@@ -331,7 +331,8 @@ class WorkerGitInterfaceable(Worker):
         ).to_dict(orient='records')
         session.close()
 
-        self.logger.info(f"ISAACM Contents of source_pk: {cntrb_pk_name}")
+        #Contents of source_pk in github_worker: cntrb_id
+        
 
         # Prepare for merge
         source_columns = sorted(list(source_df.columns))
@@ -343,6 +344,8 @@ class WorkerGitInterfaceable(Worker):
             ], sort=True
         )
         final_columns = [cntrb_pk_name] + sorted(list(set(necessary_columns)))
+
+        self.logger.info(f"ISAACM Contents of source_pk: {inserted_pks_table}")
 
         # Merge
         source_pk = pd.DataFrame(
