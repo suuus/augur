@@ -374,8 +374,8 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         self.register_task_completion(self.task_info, self.repo_id, 'pull_request_commits')
 
     def _get_pk_source_prs(self):
-        
-        #self.owner and self.repo are both defined in the worker base's collect method using the url of the github repo. 
+
+        #self.owner and self.repo are both defined in the worker base's collect method using the url of the github repo.
         pr_url = (
             f"https://api.github.com/repos/{self.owner}/{self.repo}/pulls?state=all&"
             "direction=asc&per_page=100&page={}"
@@ -406,7 +406,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 return
 
 
-            self.logger.info(f"inc_source_prs is: {inc_source_prs} and the action map is {action_map}...")
+            # self.logger.info(f"inc_source_prs is: {inc_source_prs} and the action map is {action_map}...")
 
 
             inc_source_prs['insert'] = self.enrich_cntrb_id(
@@ -416,9 +416,9 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                         'augur': ['gh_node_id']
                     }
                 }, prefix='user.'
-            )            
-            
-            
+            )
+
+
 
             prs_insert = [
             {
@@ -471,7 +471,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                     self.pull_requests_table,
                     update=inc_source_prs['update'], unique_columns=action_map['insert']['augur'],
                     insert=prs_insert, update_columns=action_map['update']['augur']
-                )   
+                )
 
                 source_data = inc_source_prs['insert'] + inc_source_prs['update']
 
@@ -493,7 +493,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             self.pk_source_prs += self.enrich_data_primary_keys(source_data, self.pull_requests_table,
                 gh_merge_fields, augur_merge_fields)
             return
-            
+
 
         #paginate endpoint with stagger enabled so that the above method can insert every 500
 
@@ -503,8 +503,8 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
 
         source_prs = self.paginate_endpoint(
             pr_url, action_map=pr_action_map, table=self.pull_requests_table,
-            where_clause=self.pull_requests_table.c.repo_id == self.repo_id, 
-            stagger=True, 
+            where_clause=self.pull_requests_table.c.repo_id == self.repo_id,
+            stagger=True,
             insertion_method=pk_source_increment_insert
         )
 
@@ -512,13 +512,13 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             f"PR Action map is {pr_action_map} after source_prs. The source_prs are {source_prs}."
         )
 
-        #Use the increment insert method in order to do the 
+        #Use the increment insert method in order to do the
         #remaining pages of the paginated endpoint that weren't inserted inside the paginate_endpoint method
         pk_source_increment_insert(source_prs,pr_action_map)
-        
+
         pk_source_prs = self.pk_source_prs
 
-        #This attribute is only needed because paginate endpoint needs to 
+        #This attribute is only needed because paginate endpoint needs to
         #send this data to the child class and this is the easiset way to do that.
         self.pk_source_prs = []
 
@@ -557,11 +557,11 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             "&page={}"
         )
 
-        # We should be capturing the following additional data here: 
+        # We should be capturing the following additional data here:
         # 1. The Platform message ID : Most efficient way to dup check
         # 2. The plaform issue ID and/or PR ID so queries are easier
         # 3. The REPO_ID so queries are easier.
-        ## ALL THIS INFO IS IN THE PLATFOMR JSON AND WE ARe ignoring IT. 
+        ## ALL THIS INFO IS IN THE PLATFOMR JSON AND WE ARe ignoring IT.
 
         comment_action_map = {
             'insert': {
