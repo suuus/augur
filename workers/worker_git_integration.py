@@ -269,6 +269,8 @@ class WorkerGitInterfaceable(Worker):
             s.sql.select(self.get_relevant_columns(self.contributors_table,cntrb_action_map))
         ).fetchall()
 
+        self.logger.info(f"ISAACM Contents of source_pk: {table_values_cntrb}")
+
         source_cntrb_insert, _ = self.organize_needed_data(
             expanded_source_df.to_dict(orient='records'), table_values=table_values_cntrb,
             action_map=cntrb_action_map
@@ -345,7 +347,6 @@ class WorkerGitInterfaceable(Worker):
         )
         final_columns = [cntrb_pk_name] + sorted(list(set(necessary_columns)))
 
-        self.logger.info(f"ISAACM Contents of source_pk: {inserted_pks_table}")
 
         # Merge
         source_pk = pd.DataFrame(
