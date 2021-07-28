@@ -397,11 +397,7 @@ class WorkerGitInterfaceable(Worker):
             f"{len(source_pk)} data points.\n"
         )
 
-<<<<<<< HEAD
         self.logger.info(f"source_pk as dict: {source_pk.to_dict(orient='records')}")
-=======
-        #checked here
->>>>>>> cceffc07f759ed1d7a8da8c20e413aaaac5311af
 
         return source_pk.to_dict(orient='records')
 
