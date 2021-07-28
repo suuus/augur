@@ -1158,6 +1158,7 @@ class Worker():
             {
                 **data_point,
                 #field: data_point[field].replace("\x00", "\uFFFD")
+                ## trying to use standard python3 method for text cleaning here. 
                 field: bytes(data_point[field], 'utf-8').decode('utf-8', 'ignore')              
                 #0x00
             } for data_point in data

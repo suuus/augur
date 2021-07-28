@@ -221,6 +221,8 @@ class GitHubWorker(Worker):
                 }
             }, prefix='user.'
         )
+        ## added an attempt at text cleaning to github issue worker. 
+        issue['insert'] = self.text_clean(issue_comments['insert'], 'body')
 
         issue_comments_insert = [
             {
