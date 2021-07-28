@@ -377,9 +377,9 @@ class Persistant():
                     self._get_data_set_columns(table_values, table_value_columns)
                 ]
             )
-            self.logger.info(f"new_data_table: {new_data_table}")
-            self.logger.info(f"new_data_table: {table_values_table}")
 
+            self.logger.info(f"new_data_table: {new_data_table}")
+            self.logger.info(f"table_values_table: {table_values_table}")
 
             need_insertion = pd.DataFrame(session.query(new_data_table).join(table_values_table,
                 eval(
@@ -1031,11 +1031,23 @@ class Persistant():
             ]
         )
 
-        # 1.Creates a df with only [new_data_columns] in it
         need_insertion = pd.DataFrame(
-            # 2. Query the new_data
-            session.query(new_data_table).join().filter(augur_table.c[action_map['insert']['augur'][0]] == None).all(), columns=new_data_columns  # table_value_columns
-            )
+            session.query(new_data_table).join(
+                augur_table,
+                eval(
+                    ' and '.join(
+                        [
+                            f"augur_table.c['{table_column}'] == new_data_table.c['{source_column}']"
+                            for table_column, source_column in zip(
+                                action_map['insert']['augur'], action_map['insert']['source']
+                            )
+                        ]
+                    )
+                ), isouter=True
+            ).filter(
+                augur_table.c[action_map['insert']['augur'][0]] == None
+            ).all(), columns=new_data_columns  # table_value_columns
+        )
 
         need_insertion = self._eval_json_columns(need_insertion)
 
