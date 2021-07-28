@@ -1157,7 +1157,9 @@ class Worker():
         return [
             {
                 **data_point,
-                field: data_point[field].replace("\x00", "\uFFFD")
+                #field: data_point[field].replace("\x00", "\uFFFD")
+                field: bytes(data_point[field], 'utf-8').decode('utf-8', 'ignore')              
+                #0x00
             } for data_point in data
         ]
 
