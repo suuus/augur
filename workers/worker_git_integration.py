@@ -255,8 +255,8 @@ class WorkerGitInterfaceable(Worker):
         expanded_source_df = self._add_nested_columns(
             source_df.copy(), [key] + action_map_additions['insert']['source']
         )
-
-        # self.logger.info(f"expanded_source_df: {expanded_source_df.to_string()}")
+        self.logger.info(f"source_df: {source_df.iloc[0].to_string()}")
+        self.logger.info(f"expanded_source_df: {expanded_source_df.iloc[0].to_string()}")
 
         # Insert cntrbs that are not in db
 
@@ -273,7 +273,7 @@ class WorkerGitInterfaceable(Worker):
             ).fetchall()
         except:
             self.logger.info("Error retrieving contributor data")
-        self.logger.info(f"table_values_cntrb: {table_values_cntrb}")
+        # self.logger.info(f"table_values_cntrb: {table_values_cntrb}")
         self.logger.info("Made it 274")
 
         source_cntrb_insert, _ = self.organize_needed_data(
@@ -282,7 +282,7 @@ class WorkerGitInterfaceable(Worker):
         )
 
         self.logger.info("Made it 281")
-        self.logger.info(f"source_cntrb_insert: {source_cntrb_insert}")
+        # self.logger.info(f"source_cntrb_insert: {source_cntrb_insert}")
 
 
 
