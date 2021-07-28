@@ -273,6 +273,8 @@ class WorkerGitInterfaceable(Worker):
         # self.logger.info(f"table_values_cntrb: {table_values_cntrb}")
         self.logger.info("Made it 274")
 
+        self.logger.info(f"ISAACM Contents of source_pk: {table_values_cntrb}")
+
         source_cntrb_insert, _ = self.organize_needed_data(
             expanded_source_df.to_dict(orient='records'), table_values=table_values_cntrb,
             action_map=cntrb_action_map
@@ -342,6 +344,9 @@ class WorkerGitInterfaceable(Worker):
         self.logger.info(f"inserted_pks: {inserted_pks}")
         session.close()
 
+        #Contents of source_pk in github_worker: cntrb_id
+        
+
         # Prepare for merge
         source_columns = sorted(list(source_df.columns))
         self.logger.info(f"source_columns: {source_columns}")
@@ -357,6 +362,7 @@ class WorkerGitInterfaceable(Worker):
         self.logger.info(f"source_table: {source_table}")
         final_columns = [cntrb_pk_name] + sorted(list(set(necessary_columns)))
         self.logger.info(f"final_columns: {final_columns}")
+
 
         # Merge
         source_pk = pd.DataFrame(
@@ -391,7 +397,11 @@ class WorkerGitInterfaceable(Worker):
             f"{len(source_pk)} data points.\n"
         )
 
+<<<<<<< HEAD
         self.logger.info(f"source_pk as dict: {source_pk.to_dict(orient='records')}")
+=======
+        #checked here
+>>>>>>> cceffc07f759ed1d7a8da8c20e413aaaac5311af
 
         return source_pk.to_dict(orient='records')
 
