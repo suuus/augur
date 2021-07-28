@@ -266,17 +266,19 @@ class WorkerGitInterfaceable(Worker):
                 'augur': ['cntrb_login'] + action_map_additions['insert']['augur']
             }
         }
-
+        self.logger.info("Made it 269")
         table_values_cntrb = self.db.execute(
             s.sql.select(self.get_relevant_columns(self.contributors_table,cntrb_action_map))
         ).fetchall()
         # self.logger.info(f"table_values_cntrb: {table_values_cntrb}")
+        self.logger.info("Made it 274")
 
         source_cntrb_insert, _ = self.organize_needed_data(
             expanded_source_df.to_dict(orient='records'), table_values=table_values_cntrb,
             action_map=cntrb_action_map
         )
 
+        self.logger.info("Made it 281")
         self.logger.info(f"source_cntrb_insert: {source_cntrb_insert}")
 
 
