@@ -273,7 +273,7 @@ class WorkerGitInterfaceable(Worker):
             ).fetchall()
         except:
             self.logger.info("Error retrieving contributor data")
-        # self.logger.info(f"table_values_cntrb: {table_values_cntrb}")
+        self.logger.info(f"table_values_cntrb: {table_values_cntrb}")
         self.logger.info("Made it 274")
 
         source_cntrb_insert, _ = self.organize_needed_data(
