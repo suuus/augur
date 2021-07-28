@@ -1122,6 +1122,8 @@ class Worker():
 
                     sql = 'COPY {} ({}) FROM STDIN WITH CSV'.format(
                         table_name, columns)
+                    self.logger.info(f"Table is: {table_name}")
+                    self.logger.info(f"Columns are: {columns}")
                     cur.copy_expert(sql=sql, file=s_buf)
 
             df = pd.DataFrame(insert)
