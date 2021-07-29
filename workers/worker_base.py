@@ -1121,14 +1121,15 @@ class Worker():
                     else:
                         table_name = table.name
 
-                    self.logger.info(f"k values are: {k}. \n")
                     self.logger.info(f"Table is: {table_name}")
                     self.logger.info(f"Columns are: {columns}")
 
-                    for k in columns:
+                    for k in keys:
                         print(k)
                         if k == 'body':
                             self.text_clean(k)
+                            self.logger.info("Body Cleaned.") 
+
                         else:
                             self.logger.info(f"Column name is {k}.\n") 
 
