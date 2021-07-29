@@ -1116,6 +1116,11 @@ class Worker():
 
                     columns = ', '.join('"{}"'.format(k) for k in keys)
 
+                    if table.schema:
+                        table_name = '{}.{}'.format(table.schema, table.name)
+                    else:
+                        table_name = table.name
+
                     self.logger.info(f"k values are: {k}. \n")
                     self.logger.info(f"Table is: {table_name}")
                     self.logger.info(f"Columns are: {columns}")
@@ -1127,10 +1132,6 @@ class Worker():
                         else:
                             self.logger.info(f"Column name is {k}.\n") 
 
-                    if table.schema:
-                        table_name = '{}.{}'.format(table.schema, table.name)
-                    else:
-                        table_name = table.name
 
                     sql = 'COPY {} ({}) FROM STDIN WITH CSV'.format(
                         table_name, columns)
