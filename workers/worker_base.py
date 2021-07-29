@@ -1118,8 +1118,8 @@ class Worker():
                     
                     for k in columns:
                         print(k)
-                        if k['body']: 
-                            k['body'] = self.text_clean(k['body'])
+                        if columns['body']: 
+                            columns['body'] = self.text_clean(columns['body'])
                         else:
                             self.logger.info(f"Column name is {k}.\n") 
 
