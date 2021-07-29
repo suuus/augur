@@ -1116,10 +1116,12 @@ class Worker():
 
                     columns = ', '.join('"{}"'.format(k) for k in keys)
                     
-                    if columns['body']:
-                        columns['body'] = self.text_clean(columns['body'])
-                    else:
-                        self.logger.info(f"Cleaned text for {columns['body']}.\n") 
+                    for k in columns:
+                        print(k)
+                        if k['body']: 
+                            k['body'] = self.text_clean(k['body'])
+                        else:
+                            self.logger.info(f"Column name is {k}.\n") 
 
                     if table.schema:
                         table_name = '{}.{}'.format(table.schema, table.name)
