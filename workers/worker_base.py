@@ -1127,7 +1127,11 @@ class Worker():
                     for k in keys:
                         print(k)
                         if k == 'body':
-                            self.text_clean(k)
+                            #TypeError: text_clean() missing 1 required positional argument: 'field'
+                            #2021-07-29 18:24:55,553,553ms [PID: 105586] workers.github_worker.57827 
+                            #[INFO] This task inserted 0 tuples before failure.
+
+                            self.text_clean([k]['body'])
                             self.logger.info("Body Cleaned.") 
 
                         else:
