@@ -1122,7 +1122,7 @@ class Worker():
 
                     for k in columns:
                         print(k)
-                        if k = 'body':
+                        if k == 'body':
                             self.text_clean(k)
                         else:
                             self.logger.info(f"Column name is {k}.\n") 
