@@ -1119,7 +1119,7 @@ class Worker():
                     if columns['body']:
                         columns['body'] = self.text_clean(columns['body'])
                     else:
-                        continue 
+                        self.logger.info(f"Cleaned text for {columns['body']}.\n") 
 
                     if table.schema:
                         table_name = '{}.{}'.format(table.schema, table.name)
