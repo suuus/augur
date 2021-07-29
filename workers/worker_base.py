@@ -1115,11 +1115,15 @@ class Worker():
                     s_buf.seek(0)
 
                     columns = ', '.join('"{}"'.format(k) for k in keys)
-                    
+
+                    self.logger.info(f"k values are: {k}. \n")
+                    self.logger.info(f"Table is: {table_name}")
+                    self.logger.info(f"Columns are: {columns}")
+
                     for k in columns:
                         print(k)
-                        if columns['body']: 
-                            columns['body'] = self.text_clean(columns['body'])
+                        if k = 'body':
+                            self.text_clean(k)
                         else:
                             self.logger.info(f"Column name is {k}.\n") 
 
@@ -1130,8 +1134,7 @@ class Worker():
 
                     sql = 'COPY {} ({}) FROM STDIN WITH CSV'.format(
                         table_name, columns)
-                    self.logger.info(f"Table is: {table_name}")
-                    self.logger.info(f"Columns are: {columns}")
+
                     cur.copy_expert(sql=sql, file=s_buf)
 
             df = pd.DataFrame(insert)
