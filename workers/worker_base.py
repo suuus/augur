@@ -1115,6 +1115,12 @@ class Worker():
                     s_buf.seek(0)
 
                     columns = ', '.join('"{}"'.format(k) for k in keys)
+                    
+                    if columns['body']:
+                        columns['body'] = self.text_clean(columns['body'])
+                    else:
+                        continue 
+
                     if table.schema:
                         table_name = '{}.{}'.format(table.schema, table.name)
                     else:
