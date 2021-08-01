@@ -1125,7 +1125,8 @@ class Worker():
                     self.logger.info(f"Columns are: {columns}")
 
                     for i in keys:
-                        print(keys)
+                        self.logger.info(f"C'mon Dad, gimmee the car tonight. These are the keys: {keys}")
+                        self.logger.info("Violent Femmes, Gimmee the Car: https://www.youtube.com/watch?v=cUw4gPZiNGQ")
                         if keys[i] == 'body':
                         # CURREENT ERROR` File "/home/sean/github/virtualenv/message-patch-4/lib/python3.8/site-packages/pandas/io/sql.py", line 1398, in to_sql
                         #     table.insert(chunksize, method=method)
