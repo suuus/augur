@@ -1124,14 +1124,19 @@ class Worker():
                     self.logger.info(f"Table is: {table_name}")
                     self.logger.info(f"Columns are: {columns}")
 
-                    for k in keys:
-                        print(k)
-                        if k == 'body':
-                            #TypeError: text_clean() missing 1 required positional argument: 'field'
-                            #2021-07-29 18:24:55,553,553ms [PID: 105586] workers.github_worker.57827 
-                            #[INFO] This task inserted 0 tuples before failure.
+                    for i in keys:
+                        print(keys)
+                        if keys[i] == 'body':
+                        # CURREENT ERROR` File "/home/sean/github/virtualenv/message-patch-4/lib/python3.8/site-packages/pandas/io/sql.py", line 1398, in to_sql
+                        #     table.insert(chunksize, method=method)
+                        #   File "/home/sean/github/virtualenv/message-patch-4/lib/python3.8/site-packages/pandas/io/sql.py", line 830, in insert
+                        #     exec_insert(conn, keys, chunk_iter)
+                        #   File "/home/sean/github/augur/workers/worker_base.py", line 1134, in psql_insert_copy
+                        #     self.text_clean([k]['body'])
+                        # TypeError: list indices must be integers or slices, not str
 
-                            self.text_clean([k]['body'])
+
+                            self.text_clean([keys[i]]['body'])
                             self.logger.info("Body Cleaned.") 
 
                         else:
