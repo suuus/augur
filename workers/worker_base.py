@@ -1117,7 +1117,7 @@ class Worker():
                     columns = ', '.join('"{}"'.format(k) for k in keys)
 
                     for s in range(len(keys)): 
-                        self.logger.info(f"Key {key} has data types {type(key)}")
+                        self.logger.info(f"Key {keys[s]} has data types {type(keys[s])}")
 
                     self.logger.info(f"printing columns datatype: {type(columns)}\n")
                     self.logger.info(f"datatype of keys is {keys}\n")
