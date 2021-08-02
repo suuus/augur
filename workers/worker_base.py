@@ -1146,8 +1146,8 @@ class Worker():
 
                         # else:
                         #     self.logger.info(f"Column name is {columns[i]}.\n") 
-                        if columns[i]['body']:
-                            columns[i]['body'] = self.text_clean(columns['body'])
+                        if columns[i]=='body':
+                            columns[i] = self.text_clean(columns['body'])
                         else:
                             continue 
 
