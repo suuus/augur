@@ -1191,7 +1191,7 @@ class Worker():
             {
                 **data_point,
                 self.logger.info(f"Original data point{field:datapoint[field]}")
-                field: data_point[field].replace("\u0000", "\uFFFD")
+                field: data_point[field].replace("\x00", "\uFFFD")
                 self.logger.info(f"Null replaced data point{field:datapoint[field]}")
                 ## trying to use standard python3 method for text cleaning here. 
                 field: bytes(data_point[field], "utf-8").decode("utf-8", "ignore") 
