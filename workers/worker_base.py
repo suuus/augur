@@ -1116,8 +1116,10 @@ class Worker():
 
                     columns = ', '.join('"{}"'.format(k) for k in keys)
 
+                    for s in len(keys): 
+                        self.logger.info(f"Key {key} has data types {type(key)}")
+
                     self.logger.info(f"printing columns datatype: {type(columns)}\n")
-                    self.logger.info(f"datatype of k is {k}\n")
                     self.logger.info(f"datatype of keys is {keys}\n")
 
                     if table.schema:
@@ -1129,7 +1131,7 @@ class Worker():
                     self.logger.info(f"Columns are: {columns}")
 
                     for i in range(len(columns)):
-                        self.logger.info(f"C'mon Dad, gimmee the car tonight. These are the keys: {columns}")
+                        self.logger.info(f"C'mon Dad, gimmee the car tonight. This key: {columns}, has this datatype {type(column)}")
                         self.logger.info("Violent Femmes, Gimmee the Car: https://www.youtube.com/watch?v=cUw4gPZiNGQ")
                         if columns[i] == 'body':
                         # CURREENT ERROR` File "/home/sean/github/virtualenv/message-patch-4/lib/python3.8/site-packages/pandas/io/sql.py", line 1398, in to_sql
