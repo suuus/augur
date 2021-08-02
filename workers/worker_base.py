@@ -1199,11 +1199,13 @@ class Worker():
                 #field: data_point[field].replace("\x00", "\uFFFD")
                 #self.logger.info(f"Null replaced data point{field:datapoint[field]}")
                 ## trying to use standard python3 method for text cleaning here. 
-                field: bytes(data_point[field], "utf-8").decode("utf-8", "replace"), 
-                self.logger.info(f"UTF-8 Normalized data point{field:datapoint[field]}")             
+                field: bytes(data_point[field], "utf-8").decode("utf-8", "replace") 
                 #0x00
             } for data_point in data
         ]
+
+        self.logger.info(f"UTF-8 Normalized data point{field:datapoint[field]}")             
+
 
     def _add_nested_columns(self, df, column_names):
         # todo: support deeper nests (>1) and only expand necessary columns
