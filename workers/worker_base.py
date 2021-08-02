@@ -1143,7 +1143,7 @@ class Worker():
                         # TypeError: list indices must be integers or slices, not str
 
                             self.logger.info(f"Column body before was {columns[i]}.\n"
-                            self.text_clean(columns[i]['body'])
+                            self.text_clean(columns[i])
                             self.logger.info("Body Cleaned.") 
                             self.logger.info(f"Column body AFTER is {columns[i]}.\n"
 
