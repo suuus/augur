@@ -1118,8 +1118,9 @@ class Worker():
 
                     columns_shape = columns.shape 
 
-                    self.logger.info(f"printing array shape {columns_shape}")
-                       
+                    self.logger.info(f"printing columns datatype: {type(columns)}")
+                    self.logger.info(f"printing shape datatype: {type(columns_shape)}")
+
                     if table.schema:
                         table_name = '{}.{}'.format(table.schema, table.name)
                     else:
