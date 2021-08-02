@@ -1116,7 +1116,9 @@ class Worker():
 
                     columns = ', '.join('"{}"'.format(k) for k in keys)
 
-                    self.logger.info(f"printing columns datatype: {type(columns)}")
+                    self.logger.info(f"printing columns datatype: {type(columns)}\n")
+                    self.logger.info(f"datatype of k is {k}\n")
+                    self.logger.info(f"datatype of keys is {keys}\n")
 
                     if table.schema:
                         table_name = '{}.{}'.format(table.schema, table.name)
@@ -1126,7 +1128,7 @@ class Worker():
                     self.logger.info(f"Table is: {table_name}")
                     self.logger.info(f"Columns are: {columns}")
 
-                    for i in len(columns):
+                    for i in range(len(columns)):
                         self.logger.info(f"C'mon Dad, gimmee the car tonight. These are the keys: {columns}")
                         self.logger.info("Violent Femmes, Gimmee the Car: https://www.youtube.com/watch?v=cUw4gPZiNGQ")
                         if columns[i] == 'body':
