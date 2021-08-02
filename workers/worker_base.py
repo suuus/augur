@@ -1116,6 +1116,10 @@ class Worker():
 
                     columns = ', '.join('"{}"'.format(k) for k in keys)
 
+                    columns_shape = columns.shape 
+
+                    self.logger.info(f"printing array shape {columns_shape}")
+                       
                     if table.schema:
                         table_name = '{}.{}'.format(table.schema, table.name)
                     else:
@@ -1124,10 +1128,10 @@ class Worker():
                     self.logger.info(f"Table is: {table_name}")
                     self.logger.info(f"Columns are: {columns}")
 
-                    for i in keys:
-                        self.logger.info(f"C'mon Dad, gimmee the car tonight. These are the keys: {keys}")
+                    for i in len(columns):
+                        self.logger.info(f"C'mon Dad, gimmee the car tonight. These are the keys: {columns}")
                         self.logger.info("Violent Femmes, Gimmee the Car: https://www.youtube.com/watch?v=cUw4gPZiNGQ")
-                        if keys[i] == 'body':
+                        if columns[i] == 'body':
                         # CURREENT ERROR` File "/home/sean/github/virtualenv/message-patch-4/lib/python3.8/site-packages/pandas/io/sql.py", line 1398, in to_sql
                         #     table.insert(chunksize, method=method)
                         #   File "/home/sean/github/virtualenv/message-patch-4/lib/python3.8/site-packages/pandas/io/sql.py", line 830, in insert
@@ -1137,7 +1141,7 @@ class Worker():
                         # TypeError: list indices must be integers or slices, not str
 
 
-                            self.text_clean([keys[i]]['body'])
+                            self.text_clean(columns[i]['body'])
                             self.logger.info("Body Cleaned.") 
 
                         else:
