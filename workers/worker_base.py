@@ -1131,7 +1131,7 @@ class Worker():
                     self.logger.info(f"Columns are: {columns}")
 
                     for i in range(len(columns)):
-                        self.logger.info(f"C'mon Dad, gimmee the car tonight. This key: {columns}, has this datatype {type(column)}")
+                        self.logger.info(f"C'mon Dad, gimmee the car tonight. This key: {columns}, has this datatype {type(columns)}")
                         self.logger.info("Violent Femmes, Gimmee the Car: https://www.youtube.com/watch?v=cUw4gPZiNGQ")
                         if columns[i] == 'body':
                         # CURREENT ERROR` File "/home/sean/github/virtualenv/message-patch-4/lib/python3.8/site-packages/pandas/io/sql.py", line 1398, in to_sql
@@ -1147,7 +1147,7 @@ class Worker():
                             self.logger.info("Body Cleaned.") 
 
                         else:
-                            self.logger.info(f"Column name is {k}.\n") 
+                            self.logger.info(f"Column name is {columns[i]}.\n") 
 
 
                     sql = 'COPY {} ({}) FROM STDIN WITH CSV'.format(
