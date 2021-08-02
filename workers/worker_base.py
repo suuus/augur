@@ -1133,20 +1133,23 @@ class Worker():
                     for i in range(len(columns)):
                         self.logger.info(f"C'mon Dad, gimmee the car tonight. This key: {columns[i]}, has this datatype {type(columns[i])}")
                         self.logger.info("Violent Femmes, Gimmee the Car: https://www.youtube.com/watch?v=cUw4gPZiNGQ")
-                        if columns[i] == 'body':
+                        # if columns[i] == 'body':
 
-                            self.logger.info("In the body.") 
+                        #     self.logger.info("In the body.") 
 
-                            for f in range(len(columns[i][f])):
+                        #     #for f in range(len(columns[f])):
 
-                                self.logger.info(f"body value before was: {columns[i][f]}.\n"
-                                self.text_clean(columns[i][f])
-                                self.logger.info("Body Cleaned.") 
-                                self.logger.info(f"Column body AFTER is {columns[i][f]}.\n"
+                        #     self.logger.info(f"body value before was: {columns[f]}.\n"
+                        #     self.text_clean(columns[f])
+                        #     self.logger.info("Body Cleaned.") 
+                        #     self.logger.info(f"Column body AFTER is {columns[f]}.\n"
 
+                        # else:
+                        #     self.logger.info(f"Column name is {columns[i]}.\n") 
+                        if columns[i]['body']:
+                            columns[i]['body'] = self.text_clean(columns['body'])
                         else:
-                            self.logger.info(f"Column name is {columns[i]}.\n") 
-
+                            continue 
 
                     sql = 'COPY {} ({}) FROM STDIN WITH CSV'.format(
                         table_name, columns)
@@ -1186,9 +1189,9 @@ class Worker():
         return [
             {
                 **data_point,
-                #field: data_point[field].replace("\x00", "\uFFFD")
+                field: data_point[field].replace("\x00", "\uFFFD")
                 ## trying to use standard python3 method for text cleaning here. 
-                field: bytes(data_point[field], 'utf-8').decode('utf-8', 'ignore')              
+                #field: bytes(data_point[field], "utf-").decode("utf-8", "ignore")              
                 #0x00
             } for data_point in data
         ]
