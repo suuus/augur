@@ -1135,10 +1135,14 @@ class Worker():
                         self.logger.info("Violent Femmes, Gimmee the Car: https://www.youtube.com/watch?v=cUw4gPZiNGQ")
                         if columns[i] == 'body':
 
-                            self.logger.info(f"Column body before was {columns[i]}.\n"
-                            self.text_clean(columns[i])
-                            self.logger.info("Body Cleaned.") 
-                            self.logger.info(f"Column body AFTER is {columns[i]}.\n"
+                            self.logger.info("In the body.") 
+
+                            for f in range(len(columns[i][f])):
+
+                                self.logger.info(f"body value before was: {columns[i][f]}.\n"
+                                self.text_clean(columns[i][f])
+                                self.logger.info("Body Cleaned.") 
+                                self.logger.info(f"Column body AFTER is {columns[i][f]}.\n"
 
                         else:
                             self.logger.info(f"Column name is {columns[i]}.\n") 
