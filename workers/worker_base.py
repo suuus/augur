@@ -1146,9 +1146,13 @@ class Worker():
 
                         # else:
                         #     self.logger.info(f"Column name is {columns[i]}.\n") 
-                        if columns[i]=='body':
-                            columns[i] = self.text_clean(columns['body'])
-                            self.logger.info(f"Cleaned body is: {columns[i]}")
+                        if columns[i]['body']:
+                            columns[i]['body'] = self.text_clean(columns['body'])
+
+
+                        # if columns[i]=='body':
+                        #     columns[i] = self.text_clean(columns['body'])
+                        #     self.logger.info(f"Cleaned body is: {columns[i]}")
                         else:
                             continue 
 
@@ -1187,14 +1191,15 @@ class Worker():
             :returns: Same data list with each element's field updated with NUL characters
                 removed
         """
+        self.logger.info(f"Original data point{field:datapoint[field]}")
+
         return [
             {
                 **data_point,
-                self.logger.info(f"Original data point{field:datapoint[field]}")
                 #field: data_point[field].replace("\x00", "\uFFFD")
                 #self.logger.info(f"Null replaced data point{field:datapoint[field]}")
                 ## trying to use standard python3 method for text cleaning here. 
-                field: bytes(data_point[field], "utf-8").decode("utf-8", "replace") 
+                field: bytes(data_point[field], "utf-8").decode("utf-8", "replace"), 
                 self.logger.info(f"UTF-8 Normalized data point{field:datapoint[field]}")             
                 #0x00
             } for data_point in data
