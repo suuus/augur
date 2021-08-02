@@ -1146,13 +1146,13 @@ class Worker():
 
                         # else:
                         #     self.logger.info(f"Column name is {columns[i]}.\n") 
-                        if columns[i]['body']:
-                            columns[i]['body'] = self.text_clean(columns['body'])
+                        # if columns[i]['body']:
+                        #     columns[i]['body'] = self.text_clean(columns['body'])
 
 
-                        # if columns[i]=='body':
-                        #     columns[i] = self.text_clean(columns['body'])
-                        #     self.logger.info(f"Cleaned body is: {columns[i]}")
+                        if columns[i]=='body':
+                             columns[i] = self.text_clean(columns['body'])
+                             self.logger.info(f"Cleaned body is: {columns[i]}")
                         else:
                             continue 
 
