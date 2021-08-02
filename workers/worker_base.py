@@ -1131,7 +1131,7 @@ class Worker():
                     self.logger.info(f"Columns are: {columns}")
 
                     for i in range(len(columns)):
-                        self.logger.info(f"C'mon Dad, gimmee the car tonight. This key: {columns}, has this datatype {type(columns)}")
+                        self.logger.info(f"C'mon Dad, gimmee the car tonight. This key: {columns[i]}, has this datatype {type(columns[i])}")
                         self.logger.info("Violent Femmes, Gimmee the Car: https://www.youtube.com/watch?v=cUw4gPZiNGQ")
                         if columns[i] == 'body':
                         # CURREENT ERROR` File "/home/sean/github/virtualenv/message-patch-4/lib/python3.8/site-packages/pandas/io/sql.py", line 1398, in to_sql
@@ -1142,9 +1142,10 @@ class Worker():
                         #     self.text_clean([k]['body'])
                         # TypeError: list indices must be integers or slices, not str
 
-
+                            self.logger.info(f"Column body before was {columns[i]}.\n"
                             self.text_clean(columns[i]['body'])
                             self.logger.info("Body Cleaned.") 
+                            self.logger.info(f"Column body AFTER is {columns[i]}.\n"
 
                         else:
                             self.logger.info(f"Column name is {columns[i]}.\n") 
