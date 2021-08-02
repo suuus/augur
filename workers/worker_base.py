@@ -1191,7 +1191,7 @@ class Worker():
             :returns: Same data list with each element's field updated with NUL characters
                 removed
         """
-        self.logger.info(f"Original data point{field:datapoint[field]}")
+        #self.logger.info(f"Original data point{field:datapoint[field]}")
 
         return [
             {
@@ -1204,7 +1204,7 @@ class Worker():
             } for data_point in data
         ]
 
-        self.logger.info(f"UTF-8 Normalized data point{field:datapoint[field]}")             
+                   
 
 
     def _add_nested_columns(self, df, column_names):
