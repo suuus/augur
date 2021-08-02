@@ -1129,6 +1129,7 @@ class Worker():
 
                     self.logger.info(f"Table is: {table_name}")
                     self.logger.info(f"Columns are: {columns}")
+                    self.logger.info(f"Column count is {range(len(columns))}")
 
                     for i in range(len(columns)):
                         #self.logger.info(f"C'mon Dad, gimmee the car tonight. This key: {columns[i]}, has this datatype {type(columns[i])}")
@@ -1151,9 +1152,10 @@ class Worker():
 
 
                         if columns[i]=='body':
-                             columns[i] = self.text_clean(columns['body'])
-                             self.logger.info(f"Cleaned body is: {columns[i]}")
+                            columns[i] = self.text_clean(columns['body'])
+                            self.logger.info(f"Cleaned body is: {columns[i]}")
                         else:
+                            self.logger.info(f"Column not cleaned is: {columns[i]}")
                             continue 
 
                     sql = 'COPY {} ({}) FROM STDIN WITH CSV'.format(
