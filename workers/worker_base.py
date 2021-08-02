@@ -1131,8 +1131,8 @@ class Worker():
                     self.logger.info(f"Columns are: {columns}")
 
                     for i in range(len(columns)):
-                        self.logger.info(f"C'mon Dad, gimmee the car tonight. This key: {columns[i]}, has this datatype {type(columns[i])}")
-                        self.logger.info("Violent Femmes, Gimmee the Car: https://www.youtube.com/watch?v=cUw4gPZiNGQ")
+                        #self.logger.info(f"C'mon Dad, gimmee the car tonight. This key: {columns[i]}, has this datatype {type(columns[i])}")
+                        #self.logger.info("Violent Femmes, Gimmee the Car: https://www.youtube.com/watch?v=cUw4gPZiNGQ")
                         # if columns[i] == 'body':
 
                         #     self.logger.info("In the body.") 
@@ -1148,6 +1148,7 @@ class Worker():
                         #     self.logger.info(f"Column name is {columns[i]}.\n") 
                         if columns[i]=='body':
                             columns[i] = self.text_clean(columns['body'])
+                            self.logger.info(f"Cleaned body is: {columns[i]}")
                         else:
                             continue 
 
