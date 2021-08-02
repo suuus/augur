@@ -1134,13 +1134,6 @@ class Worker():
                         self.logger.info(f"C'mon Dad, gimmee the car tonight. This key: {columns[i]}, has this datatype {type(columns[i])}")
                         self.logger.info("Violent Femmes, Gimmee the Car: https://www.youtube.com/watch?v=cUw4gPZiNGQ")
                         if columns[i] == 'body':
-                        # CURREENT ERROR` File "/home/sean/github/virtualenv/message-patch-4/lib/python3.8/site-packages/pandas/io/sql.py", line 1398, in to_sql
-                        #     table.insert(chunksize, method=method)
-                        #   File "/home/sean/github/virtualenv/message-patch-4/lib/python3.8/site-packages/pandas/io/sql.py", line 830, in insert
-                        #     exec_insert(conn, keys, chunk_iter)
-                        #   File "/home/sean/github/augur/workers/worker_base.py", line 1134, in psql_insert_copy
-                        #     self.text_clean([k]['body'])
-                        # TypeError: list indices must be integers or slices, not str
 
                             self.logger.info(f"Column body before was {columns[i]}.\n"
                             self.text_clean(columns[i])
