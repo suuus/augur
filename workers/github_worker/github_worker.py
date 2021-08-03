@@ -243,8 +243,9 @@ class GitHubWorker(WorkerGitInterfaceable):
                 } for comment in inc_issue_comments['insert']
             ]
 
+            #Ignore integrity errors for now.
             self.bulk_insert(self.message_table, insert=issue_comments_insert,
-                unique_columns=comment_action_map['insert']['augur'])
+                unique_columns=comment_action_map['insert']['augur'], ignore_db_insert_err=True)
 
             """ ISSUE MESSAGE REF TABLE """
 

@@ -671,7 +671,7 @@ class Persistant():
 
     def bulk_insert(
         self, table, insert=[], update=[], unique_columns=[], update_columns=[],
-        max_attempts=3, attempt_delay=3, increment_counter=True, convert_float_int=False
+        max_attempts=3, attempt_delay=3, increment_counter=True, convert_float_int=False, ignore_db_insert_err=False
     ):
         """ Performs bulk inserts/updates of the given data to the given table
 
@@ -685,6 +685,7 @@ class Persistant():
             :param max_attempts: Integer, number of attempts to perform on inserting/updating
                 before moving on
             :param attempt_delay: Integer, number of seconds to wait in between attempts
+            :param ignore_db_insert_err: Boolean, whether or not to keep going if an element could not be inserted. 
             :returns: SQLAlchemy database execution response object(s), contains metadata
                 about number of rows inserted etc. This data is not often used.
         """
@@ -730,57 +731,63 @@ class Persistant():
                 attempts += 1
 
         if len(insert) > 0:
+            
+            try:
+                insert_start_time = time.time()
 
-            insert_start_time = time.time()
+                def psql_insert_copy(table, conn, keys, data_iter):
+                    """
+                    Execute SQL statement inserting data
 
-            def psql_insert_copy(table, conn, keys, data_iter):
-                """
-                Execute SQL statement inserting data
+                    Parameters
+                    ----------
+                    table : pandas.io.sql.SQLTable
+                    conn : sqlalchemy.engine.Engine or sqlalchemy.engine.Connection
+                    keys : list of str
+                        Column names
+                    data_iter : Iterable that iterates the values to be inserted
+                    """
+                    # gets a DBAPI connection that can provide a cursor
+                    dbapi_conn = conn.connection
+                    with dbapi_conn.cursor() as cur:
+                        s_buf = io.StringIO()
+                        writer = csv.writer(s_buf)
+                        writer.writerows(data_iter)
+                        s_buf.seek(0)
 
-                Parameters
-                ----------
-                table : pandas.io.sql.SQLTable
-                conn : sqlalchemy.engine.Engine or sqlalchemy.engine.Connection
-                keys : list of str
-                    Column names
-                data_iter : Iterable that iterates the values to be inserted
-                """
-                # gets a DBAPI connection that can provide a cursor
-                dbapi_conn = conn.connection
-                with dbapi_conn.cursor() as cur:
-                    s_buf = io.StringIO()
-                    writer = csv.writer(s_buf)
-                    writer.writerows(data_iter)
-                    s_buf.seek(0)
+                        columns = ', '.join('"{}"'.format(k) for k in keys)
+                        if table.schema:
+                            table_name = '{}.{}'.format(table.schema, table.name)
+                        else:
+                            table_name = table.name
 
-                    columns = ', '.join('"{}"'.format(k) for k in keys)
-                    if table.schema:
-                        table_name = '{}.{}'.format(table.schema, table.name)
-                    else:
-                        table_name = table.name
+                        sql = 'COPY {} ({}) FROM STDIN WITH CSV'.format(
+                            table_name, columns)
+                        #This causes the github worker to throw an error with pandas
+                        cur.copy_expert(sql=sql, file=s_buf)
 
-                    sql = 'COPY {} ({}) FROM STDIN WITH CSV'.format(
-                        table_name, columns)
-                    #This causes the github worker to throw an error with pandas
-                    cur.copy_expert(sql=sql, file=s_buf)
+                df = pd.DataFrame(insert)
+                if convert_float_int:
+                    df = self._convert_float_nan_to_int(df)
+                df.to_sql(
+                    name=table.name,
+                    con=self.db,
+                    if_exists="append",
+                    index=False,
+                    method=psql_insert_copy
+                )
+                if increment_counter:
+                    self.insert_counter += len(insert)
 
-            df = pd.DataFrame(insert)
-            if convert_float_int:
-                df = self._convert_float_nan_to_int(df)
-            df.to_sql(
-                name=table.name,
-                con=self.db,
-                if_exists="append",
-                index=False,
-                method=psql_insert_copy
-            )
-            if increment_counter:
-                self.insert_counter += len(insert)
-
-            self.logger.info(
-                f"Inserted {len(insert)} rows in {time.time() - insert_start_time} seconds "
-                "thanks to postgresql's COPY FROM CSV! :)"
-            )
+                self.logger.info(
+                    f"Inserted {len(insert)} rows in {time.time() - insert_start_time} seconds "
+                    "thanks to postgresql's COPY FROM CSV! :)"
+                )
+            except Exception as e:
+                if not ignore_db_insert_err:
+                    raise e
+                else:
+                    self.logger.info(f"Ignored error {e} and continued insertion.")
 
         return insert_result, update_result
 
