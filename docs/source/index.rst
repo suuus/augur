@@ -10,6 +10,8 @@ Welcome to the Augur project's official documentation. Below is a brief primer o
    development-guide/toc
    rest-api/api
    docker/toc
+   operations/toc
+   deployment/toc 
 .. 
   library-documentation/toc
 .. 
@@ -40,13 +42,10 @@ Current maintainers
 --------------------
 - `Derek Howard <https://github.com/howderek>`_
 - `Sean P. Goggins <http://www.seangoggins.net>`_
-- `Matt Germonprez <https://goo.gl/E87KdK>`_
-- `Gabe Heim <https://github.com/gabe-heim>`_
 - `Matt Snell <https://github.com/Nebrethar>`_
 - `Andrew Brain <https://github.com/ABrain7710>`_
-- `Ryland Dohm <https://github.com/rcdohm>`_
 - `Carter Landis <https://github.com/ccarterlandis>`_
-
+- `John McGinnes <https://github.com/Ulincsys>`_
 
 Former maintainers
 --------------------
@@ -56,12 +55,17 @@ Former maintainers
 - `Elita Nelson <https://github.com/ElitaNelson>`_
 - `Michael Woodruff <https://github.com/michaelwoodruffdev/>`_
 - `Max Balk <https://github.com/maxbalk/>`_
+- `Gabe Heim <https://github.com/gabe-heim>`_
+- `Ryland Dohm <https://github.com/rcdohm>`_
+
 
 Contributors
 --------------------
 - `Dawn Foster <https://github.com/geekygirldawn/>`_
 - `Ivana Atanasova <https://github.com/ivanayov/>`_
 - `Georg J.P. Link <https://github.com/GeorgLink/>`_
+- `Matt Germonprez <https://goo.gl/E87KdK>`_
+
 
 GSoC 2020 participants
 -----------------------

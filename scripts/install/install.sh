@@ -21,6 +21,10 @@ fi
 scripts/install/backend.sh $target 2>&1 | tee logs/backend-install.log
 echo "Done!"
 
+scripts/install/git.sh $target 2>=&1 | tee logs/git-install.log echo
+echo "Git Intall Done"
+
+
 scripts/install/workers.sh $target 2>&1 | tee logs/workers-install.log
 echo "Done!"
 
