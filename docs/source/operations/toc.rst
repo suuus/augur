@@ -5,6 +5,7 @@ Docker
    :maxdepth: 2
 
    updating-augur
+   troubleshooting
    
 
 
