@@ -298,7 +298,7 @@ def git_repo_updates(cfg):
         # as somebody may have done a rebase. No work is being done in the local
         # repo, so there shouldn't be legit local changes to worry about.
 
-        while attempt < 2:
+        while attempt < 3:
 
             cmd = ("git -C %s%s/%s%s pull"
                 % (cfg.repo_base_directory,row[1],row[4],row[3]))#['projects_id'],row['path'],row['name']))
