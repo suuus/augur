@@ -368,7 +368,7 @@ class WorkerGitInterfaceable(Worker):
                   except TimeoutError:
                     self.logger.info(f"User data request for enriching contributor data failed with {attempts} attempts! Trying again...")
                     time.sleep(10)
-
+                  self.update_rate_limit(response,platform=platform)
                   attempts += 1
               except Exception as e:
                 raise e
