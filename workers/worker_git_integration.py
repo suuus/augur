@@ -358,24 +358,51 @@ class WorkerGitInterfaceable(Worker):
 					self.logger.info(f"Error when creating url: {e}. Data: {data}")
 
 			  	attempts = 0
-			  
+			  	contributor = None
+				success = False
 			  	while attempts < 10:
 					self.logger.info("Hitting endpoint: " + url + " ...\n")
 					try:
 				  		response = requests.get(url=url , headers=self.headers)
-				  		break
 					except TimeoutError:
 						self.logger.info(f"User data request for enriching contributor data failed with {attempts} attempts! Trying again...")
 						time.sleep(10)
-						
+						continue
+					
+					self.update_rate_limit(response,platform=platform)
+					
+
+					try:
+						contributor = response.json()
+			  		except:
+						contributor = json.loads(json.dumps(response.text))
+					
+					if type(contributor) == dict:
+						self.logger.info("Request returned a dict!")
+						self.logger.info(f"Contributor data: {contributor}")
+						success = True
+						break
+					elif type(contributor) == list:
+						self.logger.warning("Wrong type returned trying again.")
+						self.logger.info(f"Contributor data: {contributor}")
+					elif type(contributor) == str:
+						self.logger.info(f"Warning! page_data was string: {contributor}\n")
+						if "<!DOCTYPE html>" in contributor:
+							self.logger.info("HTML was returned, trying again...\n")
+						elif len(contributor) == 0:
+							self.logger.warning("Empty string, trying again...\n")
+						else:
+							try:
+								contributor = json.loads(contributor)
+								success = True
+								break
+							except:
+								pass
 					attempts += 1
+				if not success:
+					continue
 
-				try:
-					contributor = response.json()
-			  	except:
-					contributor = json.loads(json.dumps(response.text))
-
-				self.logger.info(f"Contributor data: {contributor}")
+				
 
 				cntrb = {
 			  		"cntrb_login": contributor['login'],
@@ -1722,7 +1749,7 @@ class WorkerGitInterfaceable(Worker):
 			num_attempts = 0
 			success = False
 			while num_attempts < 10:
-				self.logger.info("hitting an endpiont")
+				self.logger.info("hitting an endpoint")
 				#	f"Hitting endpoint: ...\n"
 				#	f"{url.format(page_number)} on page number. \n")
 				try:
