@@ -1,7 +1,5 @@
 BEGIN; 
 
-INSERT INTO "augur_operations"."worker_history" ("history_id", "repo_id", "worker", "job_model", "oauth_id", "timestamp", "status", "total_results") VALUES (1, 1, 'seed.worker.record', 'seed', NULL, '2021-07-27 09:50:56', 'Success', 0);
-
 DROP TABLE IF EXISTS "augur_data"."repo_deps_libyear";
 CREATE TABLE "augur_data"."repo_deps_libyear" (
   "repo_deps_libyear_id" serial8 NOT NULL,
