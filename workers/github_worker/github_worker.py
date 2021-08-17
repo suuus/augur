@@ -219,8 +219,8 @@ class GitHubWorker(WorkerGitInterfaceable):
         #   check dupicates/needed column updates with
         comment_action_map = {
             'insert': {
-                'source': ['created_at', 'body'],
-                'augur': ['msg_timestamp', 'msg_text']
+                'source': ['platform_msg_id'],
+                'augur': ['id']
             }
         }
 
@@ -241,22 +241,11 @@ class GitHubWorker(WorkerGitInterfaceable):
             else:
                 self.logger.info("Contributor enrichment is not needed, no inserts in action map.")
 
-            issue_comments_insert = [
-                {
-                    'pltfrm_id': self.platform_id,
-                    'msg_text': comment['body'],
-                    'msg_timestamp': comment['created_at'],
-                    'cntrb_id': comment['cntrb_id'],
-                    'tool_source': self.tool_source,
-                    'tool_version': self.tool_version,
-                    'data_source': self.data_source
-                } for comment in inc_issue_comments['insert']
-            ]
+            """ ISSUE MESSAGE REF TABLE 
+            This is a bridge entity between the issue, and the message. It exists so we can 
+            Have all messages, of all types, retained in the messages table.
 
-            self.bulk_insert(self.message_table, insert=issue_comments_insert,
-                unique_columns=comment_action_map['insert']['augur'])
-
-            """ ISSUE MESSAGE REF TABLE """
+            """
 
             c_pk_source_comments = self.enrich_data_primary_keys(
                 inc_issue_comments['insert'], self.message_table,
@@ -274,7 +263,8 @@ class GitHubWorker(WorkerGitInterfaceable):
                     'tool_version': self.tool_version,
                     'data_source': self.data_source,
                     'issue_msg_ref_src_comment_id': comment['id'],
-                    'issue_msg_ref_src_node_id': comment['node_id']
+                    'issue_msg_ref_src_node_id': comment['node_id'],
+                    'repo_id': self.repo_id
                 } for comment in both_pk_source_comments
             ]
 
@@ -282,6 +272,29 @@ class GitHubWorker(WorkerGitInterfaceable):
                 self.issue_message_ref_table, insert=issue_message_ref_insert,
                 unique_columns=['issue_msg_ref_src_comment_id']
             )
+
+            """ MESSAGE TABLE 
+            Where all messages are stored. For issues and pull/merge requests
+            they are linked/bridged back to the original issue or PR. 
+
+            """
+
+            issue_comments_insert = [
+                {
+                    'pltfrm_id': self.platform_id,
+                    'msg_text': comment['body'],
+                    'msg_timestamp': comment['created_at'],
+                    'cntrb_id': comment['cntrb_id'],
+                    'tool_source': self.tool_source,
+                    'tool_version': self.tool_version,
+                    'data_source': self.data_source,
+                    'platform_msg_id': comment['id'],
+                    'platform_node_id' comment['node_id']
+                } for comment in inc_issue_comments['insert']
+            ]
+
+            self.bulk_insert(self.message_table, insert=issue_comments_insert,
+                unique_columns=comment_action_map['insert']['augur'])
 
         # list to hold contributors needing insertion or update
         issue_comments = self.paginate_endpoint(
