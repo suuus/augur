@@ -289,7 +289,7 @@ class GitHubWorker(WorkerGitInterfaceable):
                     'tool_version': self.tool_version,
                     'data_source': self.data_source,
                     'platform_msg_id': comment['id'],
-                    'platform_node_id' comment['node_id']
+                    'platform_node_id': comment['node_id']
                 } for comment in inc_issue_comments['insert']
             ]
 
