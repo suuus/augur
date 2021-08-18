@@ -589,6 +589,9 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         }
 
         # PR MESSAGE REF TABLE
+        pr_comments = self.new_paginate_endpoint(
+            comments_url, action_map=comment_action_map, table=self.message_table
+        )
 
         c_pk_source_comments = self.enrich_data_primary_keys(pr_comments['insert'],
             self.message_table, ['created_at', 'body'], ['msg_timestamp', 'msg_text'])
@@ -617,9 +620,28 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
 
         ## Message Table
         # TODO: add relational table so we can include a where_clause here
-        pr_comments = self.new_paginate_endpoint(
-            comments_url, action_map=comment_action_map, table=self.message_table
-        )
+
+        # Trying to call this above due to this error: 
+        """
+        021-08-17 20:45:23,309,309ms [PID: 3971755] workers.pull_request_worker.50225 [ERROR] Traceback (most recent call last):
+          File "/home/sean/github/augur/workers/pull_request_worker/pull_request_worker.py", line 553, in pull_requests_model
+            self.pull_request_comments_model()
+          File "/home/sean/github/augur/workers/pull_request_worker/pull_request_worker.py", line 593, in pull_request_comments_model
+            c_pk_source_comments = self.enrich_data_primary_keys(pr_comments['insert'],
+        UnboundLocalError: local variable 'pr_comments' referenced before assignment
+
+        During handling of the above exception, another exception occurred:
+
+        Traceback (most recent call last):
+          File "/home/sean/github/augur/workers/worker_base.py", line 180, in collect
+            model_method(message, repo_id)
+          File "/home/sean/github/augur/workers/pull_request_worker/pull_request_worker.py", line 555, in pull_requests_model
+            self.logger(f"Comments model failed with {e}.")
+        TypeError: 'Logger' object is not callable
+        """
+        # pr_comments = self.new_paginate_endpoint(
+        #     comments_url, action_map=comment_action_map, table=self.message_table
+        # )
 
         self.write_debug_data(pr_comments, 'pr_comments')
 
@@ -811,56 +833,9 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         self.write_debug_data(both_pr_review_pk_source_reviews, 'both_pr_review_pk_source_reviews')
 
 
-        # PR REVIEW MESSAGE REF TABLE
 
-        c_pk_source_comments = self.enrich_data_primary_keys(
-            review_msgs['insert'], self.message_table, ['id'],
-            ['platform_msg_id']
-        )
-        self.write_debug_data(c_pk_source_comments, 'c_pk_source_comments')
 
-        both_pk_source_comments = self.enrich_data_primary_keys(
-            c_pk_source_comments, self.pull_request_reviews_table, ['pull_request_review_id'],
-            ['pr_review_src_id']
-        )
-        self.write_debug_data(both_pk_source_comments, 'both_pk_source_comments')
 
-        pr_review_msg_ref_insert = [
-            {
-                'pr_review_id': comment['pr_review_id'],
-                'msg_id': comment['msg_id'],
-                'pr_review_msg_url': comment['url'],
-                'pr_review_src_id': comment['pull_request_review_id'],
-                'pr_review_msg_src_id': comment['id'],
-                'pr_review_msg_node_id': comment['node_id'],
-                'pr_review_msg_diff_hunk': comment['diff_hunk'],
-                'pr_review_msg_path': comment['path'],
-                'pr_review_msg_position': comment['position'],
-                'pr_review_msg_original_position': comment['original_position'],
-                'pr_review_msg_commit_id': comment['commit_id'],
-                'pr_review_msg_original_commit_id': comment['original_commit_id'],
-                'pr_review_msg_updated_at': comment['updated_at'],
-                'pr_review_msg_html_url': comment['html_url'],
-                'pr_url': comment['pull_request_url'],
-                'pr_review_msg_author_association': comment['author_association'],
-                'pr_review_msg_start_line': comment['start_line'],
-                'pr_review_msg_original_start_line': comment['original_start_line'],
-                'pr_review_msg_start_side': comment['start_side'],
-                'pr_review_msg_line': comment['line'],
-                'pr_review_msg_original_line': comment['original_line'],
-                'pr_review_msg_side': comment['side'],
-                'tool_source': 'Pull Request Reviews Model',
-                'tool_version': self.tool_version,
-                'data_source': self.data_source
-            } for comment in both_pk_source_comments
-        ]
-
-        self.bulk_insert(
-            self.pull_request_review_message_ref_table,
-            insert=pr_review_msg_ref_insert
-        )
-
-        
         # Review Comments
 
        #  https://api.github.com/repos/chaoss/augur/pulls
@@ -922,6 +897,55 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         ]
 
         self.bulk_insert(self.message_table, insert=review_msg_insert)
+
+        # PR REVIEW MESSAGE REF TABLE
+
+        c_pk_source_comments = self.enrich_data_primary_keys(
+            review_msgs['insert'], self.message_table, ['id'],
+            ['platform_msg_id']
+        )
+        self.write_debug_data(c_pk_source_comments, 'c_pk_source_comments')
+
+        both_pk_source_comments = self.enrich_data_primary_keys(
+            c_pk_source_comments, self.pull_request_reviews_table, ['pull_request_review_id'],
+            ['pr_review_src_id']
+        )
+        self.write_debug_data(both_pk_source_comments, 'both_pk_source_comments')
+
+        pr_review_msg_ref_insert = [
+            {
+                'pr_review_id': comment['pr_review_id'],
+                'msg_id': comment['msg_id'],
+                'pr_review_msg_url': comment['url'],
+                'pr_review_src_id': comment['pull_request_review_id'],
+                'pr_review_msg_src_id': comment['id'],
+                'pr_review_msg_node_id': comment['node_id'],
+                'pr_review_msg_diff_hunk': comment['diff_hunk'],
+                'pr_review_msg_path': comment['path'],
+                'pr_review_msg_position': comment['position'],
+                'pr_review_msg_original_position': comment['original_position'],
+                'pr_review_msg_commit_id': comment['commit_id'],
+                'pr_review_msg_original_commit_id': comment['original_commit_id'],
+                'pr_review_msg_updated_at': comment['updated_at'],
+                'pr_review_msg_html_url': comment['html_url'],
+                'pr_url': comment['pull_request_url'],
+                'pr_review_msg_author_association': comment['author_association'],
+                'pr_review_msg_start_line': comment['start_line'],
+                'pr_review_msg_original_start_line': comment['original_start_line'],
+                'pr_review_msg_start_side': comment['start_side'],
+                'pr_review_msg_line': comment['line'],
+                'pr_review_msg_original_line': comment['original_line'],
+                'pr_review_msg_side': comment['side'],
+                'tool_source': 'Pull Request Reviews Model',
+                'tool_version': self.tool_version,
+                'data_source': self.data_source
+            } for comment in both_pk_source_comments
+        ]
+
+        self.bulk_insert(
+            self.pull_request_review_message_ref_table,
+            insert=pr_review_msg_ref_insert
+        )
 
     def pull_request_nested_data_model(self, pk_source_prs=[]):
 
