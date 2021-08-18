@@ -583,11 +583,39 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
 
         comment_action_map = {
             'insert': {
-                'source': ['created_at', 'body'],
-                'augur': ['msg_timestamp', 'msg_text']
+                'source': ['id'],
+                'augur': ['platform_msg_id']
             }
         }
 
+        # PR MESSAGE REF TABLE
+
+        c_pk_source_comments = self.enrich_data_primary_keys(pr_comments['insert'],
+            self.message_table, ['created_at', 'body'], ['msg_timestamp', 'msg_text'])
+
+        self.write_debug_data(c_pk_source_comments, 'c_pk_source_comments')
+
+        both_pk_source_comments = self.enrich_data_primary_keys(c_pk_source_comments,
+            self.pull_requests_table, ['issue_url'], ['pr_issue_url'])
+
+        self.write_debug_data(both_pk_source_comments, 'both_pk_source_comments')
+
+        pr_message_ref_insert = [
+            {
+                'pull_request_id': comment['pull_request_id'],
+                'msg_id': comment['msg_id'],
+                'pr_message_ref_src_comment_id': comment['id'],
+                'pr_message_ref_src_node_id': comment['node_id'],
+                'tool_source': self.tool_source,
+                'tool_version': self.tool_version,
+                'data_source': self.data_source
+            } for comment in both_pk_source_comments
+        ]
+
+        self.bulk_insert(self.pull_request_message_ref_table, insert=pr_message_ref_insert)
+
+
+        ## Message Table
         # TODO: add relational table so we can include a where_clause here
         pr_comments = self.new_paginate_endpoint(
             comments_url, action_map=comment_action_map, table=self.message_table
@@ -617,37 +645,13 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 'cntrb_id': comment['cntrb_id'],
                 'tool_source': self.tool_source,
                 'tool_version': self.tool_version,
-                'data_source': self.data_source
+                'data_source': self.data_source,
+                'platform_msg_id': comment['id'],
+                'platform_msg_id': comment['node_id']
             } for comment in pr_comments['insert']
         ]
 
         self.bulk_insert(self.message_table, insert=pr_comments_insert)
-
-        # PR MESSAGE REF TABLE
-
-        c_pk_source_comments = self.enrich_data_primary_keys(pr_comments['insert'],
-            self.message_table, ['created_at', 'body'], ['msg_timestamp', 'msg_text'])
-
-        self.write_debug_data(c_pk_source_comments, 'c_pk_source_comments')
-
-        both_pk_source_comments = self.enrich_data_primary_keys(c_pk_source_comments,
-            self.pull_requests_table, ['issue_url'], ['pr_issue_url'])
-
-        self.write_debug_data(both_pk_source_comments, 'both_pk_source_comments')
-
-        pr_message_ref_insert = [
-            {
-                'pull_request_id': comment['pull_request_id'],
-                'msg_id': comment['msg_id'],
-                'pr_message_ref_src_comment_id': comment['id'],
-                'pr_message_ref_src_node_id': comment['node_id'],
-                'tool_source': self.tool_source,
-                'tool_version': self.tool_version,
-                'data_source': self.data_source
-            } for comment in both_pk_source_comments
-        ]
-
-        self.bulk_insert(self.pull_request_message_ref_table, insert=pr_message_ref_insert)
 
     def pull_request_events_model(self, pk_source_prs=[]):
 
