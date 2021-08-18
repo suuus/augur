@@ -640,7 +640,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         pr_comments_insert = [
             {
                 'pltfrm_id': self.platform_id,
-                'msg_text': comment['body'].replace("\x00", "\uFFFD"),
+                'msg_text': comment['body'].decode("utf-8", "ignore").replace("\x00", "\uFFFD"),
                 'msg_timestamp': comment['created_at'],
                 'cntrb_id': comment['cntrb_id'],
                 'tool_source': self.tool_source,
