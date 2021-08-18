@@ -219,8 +219,8 @@ class GitHubWorker(WorkerGitInterfaceable):
         #   check dupicates/needed column updates with
         comment_action_map = {
             'insert': {
-                'source': ['platform_msg_id'],
-                'augur': ['id']
+                'source': ['id'],
+                'augur': ['platform_msg_id']
             }
         }
 
