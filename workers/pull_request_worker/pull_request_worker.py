@@ -17,6 +17,8 @@ import pandas as pd
 import sqlalchemy as s
 from sqlalchemy.sql.expression import bindparam
 from workers.worker_base import Worker
+from augur.logging import AugurLogging
+
 
 class GitHubPullRequestWorker(WorkerGitInterfaceable):
     """
@@ -659,10 +661,12 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         else:
             self.logger.info("Contributor enrichment is not needed, no inserts in action map.")
 
+        #                 field: bytes(data_point[field], "utf-8").decode("utf-8", "ignore").replace("\x00", "\uFFFD")
+
         pr_comments_insert = [
             {
                 'pltfrm_id': self.platform_id,
-                'msg_text': comment['body'].decode("utf-8", "ignore").replace("\x00", "\uFFFD"),
+                'msg_text': bytes(comment['body'], "utf-8").decode("utf-8", "ignore").replace("\x00", "\uFFFD"),
                 'msg_timestamp': comment['created_at'],
                 'cntrb_id': comment['cntrb_id'],
                 'tool_source': self.tool_source,
@@ -881,10 +885,13 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         else:
             self.logger.info("Contributor enrichment is not needed, nothing to insert from the action map.")
 
+        #                 field: bytes(data_point[field], "utf-8").decode("utf-8", "ignore").replace("\x00", "\uFFFD")
+
+
         review_msg_insert = [
             {
                 'pltfrm_id': self.platform_id,
-                'msg_text': comment['body'],
+                'msg_text': bytes(comment['body'], "utf-8").decode("utf-8", "ignore").replace("\x00", "\uFFFD")
                 'msg_timestamp': comment['created_at'],
                 'cntrb_id': comment['cntrb_id'],
                 'tool_source': 'Pull Request Reviews Model',
