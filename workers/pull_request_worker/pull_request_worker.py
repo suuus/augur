@@ -633,12 +633,17 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         # PR MESSAGE REF TABLE
 
         c_pk_source_comments = self.enrich_data_primary_keys(pr_comments['insert'],
-            self.message_table, ['created_at', 'body'], ['msg_timestamp', 'msg_text'])
+            self.message_table, ['id'], ['platform_msg_id'])
 
         self.write_debug_data(c_pk_source_comments, 'c_pk_source_comments')
 
-        both_pk_source_comments = self.enrich_data_primary_keys(c_pk_source_comments,
-            self.pull_requests_table, ['issue_url'], ['pr_issue_url'])
+        both_pk_source_comments = self.enrich_data_primary_keys(
+            c_pk_source_comments, self.pull_request_reviews_table, ['id'],
+            ['platform_msg_id']
+        )
+
+        # both_pk_source_comments = self.enrich_data_primary_keys(c_pk_source_comments,
+        #     self.pull_requests_table, ['issue_url'], ['pr_issue_url'])
 
         self.write_debug_data(both_pk_source_comments, 'both_pk_source_comments')
 
@@ -653,6 +658,8 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 'data_source': self.data_source
             } for comment in both_pk_source_comments
         ]
+
+        self.logger.info(f"ready for pr-msg-ref table inserts {pr_comments['id']}!")
 
         self.bulk_insert(self.pull_request_message_ref_table, insert=pr_message_ref_insert)
 
