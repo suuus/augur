@@ -355,7 +355,8 @@ class WorkerGitInterfaceable(Worker):
               try:
                 url = ("https://api.github.com/users/" + data[f'{prefix}login'])
               except Exception as e:
-                self.logger.info(f"Error when creating url: {e}. Data: {data}")
+                self.logger.info(f"Error when creating url: {e} Login: {data[f'{prefix}login']}")
+                continue 
 
               attempts = 0
               contributor = None
@@ -953,9 +954,9 @@ class WorkerGitInterfaceable(Worker):
             try:
                 self.oauths[0]['rate_limit'] = int(response.headers['X-RateLimit-Remaining'])
                 # self.logger.info("Recieved rate limit from headers\n")
-            except:
+            except Exception as e:
                 self.oauths[0]['rate_limit'] -= 1
-                self.logger.info("Headers did not work, had to decrement")
+                self.logger.info(f"Headers did not work, had to decrement, with error {e}.")
         self.logger.info(
             f"Updated rate limit, you have: {self.oauths[0]['rate_limit']} requests remaining."
         )

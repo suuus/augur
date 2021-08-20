@@ -111,8 +111,8 @@ class GitHubWorker(WorkerGitInterfaceable):
                         if is_valid_pr_block(issue) else None
                     ),
                     'created_at': issue['created_at'],
-                    'issue_title': issue['title'],
-                    'issue_body': issue['body'].replace('0x00', '____') if issue['body'] else None,
+                    'issue_title': bytes(issue['title'], "utf-8").decode("utf-8", "ignore").replace("\x00", "\uFFFD") if issue['title'] else None,
+                    'issue_body': bytes(issue['body'], "utf-8").decode("utf-8", "ignore").replace("\x00", "\uFFFD") if issue['body'] else None,
                     'comment_count': issue['comments'],
                     'updated_at': issue['updated_at'],
                     'closed_at': issue['closed_at'],
@@ -219,8 +219,8 @@ class GitHubWorker(WorkerGitInterfaceable):
         #   check dupicates/needed column updates with
         comment_action_map = {
             'insert': {
-                'source': ['created_at', 'body'],
-                'augur': ['msg_timestamp', 'msg_text']
+                'source': ['id'],
+                'augur': ['platform_msg_id']
             }
         }
 
@@ -244,12 +244,14 @@ class GitHubWorker(WorkerGitInterfaceable):
             issue_comments_insert = [
                 {
                     'pltfrm_id': self.platform_id,
-                    'msg_text': comment['body'],
+                    'msg_text': bytes(comment['body'], "utf-8").decode("utf-8", "ignore").replace("\x00", "\uFFFD"),
                     'msg_timestamp': comment['created_at'],
                     'cntrb_id': comment['cntrb_id'],
                     'tool_source': self.tool_source,
                     'tool_version': self.tool_version,
-                    'data_source': self.data_source
+                    'data_source': self.data_source,
+                    'platform_msg_id': comment['id'],
+                    'platform_node_id': comment['node_id']
                 } for comment in inc_issue_comments['insert']
             ]
 

@@ -17,6 +17,8 @@ import pandas as pd
 import sqlalchemy as s
 from sqlalchemy.sql.expression import bindparam
 from workers.worker_base import Worker
+from augur.logging import AugurLogging
+
 
 class GitHubPullRequestWorker(WorkerGitInterfaceable):
     """
@@ -439,7 +441,9 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 'pr_src_locked': pr['locked'],
                 'pr_src_title': pr['title'],
                 'pr_augur_contributor_id': pr['cntrb_id'],
-                'pr_body': pr['body'],
+                'pr_body': pr['body'].encode(encoding='UTF-8',errors='ignore').decode(encoding='UTF-8',errors='ignore') if (
+                    pr['body']
+                ) else None,
                 'pr_created_at': pr['created_at'],
                 'pr_updated_at': pr['updated_at'],
                 'pr_closed_at': pr['closed_at'],
@@ -544,7 +548,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         try: 
             pk_source_prs = self._get_pk_source_prs()
         except Exception as e: 
-            self.logger(f"Pull Requests model failed with {e}.")
+            self.logger.info(f"Pull Requests model failed with {e}.")
 
         self.write_debug_data(pk_source_prs, 'pk_source_prs')
 
@@ -552,19 +556,19 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             try: 
                 self.pull_request_comments_model()
             except Exception as e: 
-                self.logger(f"Comments model failed with {e}.")
+                self.logger.info(f"Comments model failed with {e}.")
             try: 
                 self.pull_request_events_model(pk_source_prs)
             except Exception as e: 
-                self.logger(f"PR Events model failed with {e}.")
+                self.logger.info(f"PR Events model failed with {e}.")
             try:
                 self.pull_request_reviews_model(pk_source_prs)
             except Exception as e: 
-                self.logger(f"PR Reviews model failed with {e}.")
+                self.logger.info(f"PR Reviews model failed with {e}.")
             try: 
                 self.pull_request_nested_data_model(pk_source_prs)
             except Exception as e: 
-                self.logger(f"PR Nested Data model failed with {e}.")
+                self.logger.info(f"PR Nested Data model failed with {e}.")
 
         self.register_task_completion(self.task_info, self.repo_id, 'pull_requests')
 
@@ -583,12 +587,11 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
 
         comment_action_map = {
             'insert': {
-                'source': ['created_at', 'body'],
-                'augur': ['msg_timestamp', 'msg_text']
+                'source': ['id'],
+                'augur': ['platform_msg_id']
             }
         }
 
-        # TODO: add relational table so we can include a where_clause here
         pr_comments = self.new_paginate_endpoint(
             comments_url, action_map=comment_action_map, table=self.message_table
         )
@@ -612,12 +615,16 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         pr_comments_insert = [
             {
                 'pltfrm_id': self.platform_id,
-                'msg_text': comment['body'].replace("\x00", "\uFFFD"),
+                'msg_text': comment['body'].encode(encoding='UTF-8',errors='ignore').decode(encoding='UTF-8',errors='ignore') if (
+                    comment['body']
+                ) else None,
                 'msg_timestamp': comment['created_at'],
                 'cntrb_id': comment['cntrb_id'],
                 'tool_source': self.tool_source,
                 'tool_version': self.tool_version,
-                'data_source': self.data_source
+                'data_source': self.data_source,
+                'platform_msg_id': comment['id'],
+                'platform_node_id': comment['node_id']
             } for comment in pr_comments['insert']
         ]
 
@@ -774,7 +781,9 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
                 'cntrb_id': review['cntrb_id'],
                 'pr_review_author_association': review['author_association'],
                 'pr_review_state': review['state'],
-                'pr_review_body': review['body'],
+                'pr_review_body': review['body'].encode(encoding='UTF-8',errors='ignore').decode(encoding='UTF-8',errors='ignore') if (
+                    review['body']
+                ) else None,
                 'pr_review_submitted_at': review['submitted_at'] if (
                     'submitted_at' in review
                 ) else None,
@@ -815,8 +824,8 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
 
         review_msg_action_map = {
             'insert': {
-                'source': ['created_at', 'body'],
-                'augur': ['msg_timestamp', 'msg_text']
+                'source': ['id'],
+                'augur': ['platform_msg_id']
             }
         }
 
@@ -850,16 +859,19 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
             )
         else:
             self.logger.info("Contributor enrichment is not needed, nothing to insert from the action map.")
-
         review_msg_insert = [
             {
                 'pltfrm_id': self.platform_id,
-                'msg_text': comment['body'],
+                'msg_text': comment['body'].encode(encoding='UTF-8',errors='ignore').decode(encoding='UTF-8',errors='ignore') if (
+                    comment['body']
+                ) else None,
                 'msg_timestamp': comment['created_at'],
                 'cntrb_id': comment['cntrb_id'],
                 'tool_source': self.tool_source,
                 'tool_version': self.tool_version,
-                'data_source': self.data_source
+                'data_source': self.data_source,
+                'platform_msg_id': comment['id'],
+                'platform_node_id': comment['node_id']
             } for comment in review_msgs['insert']
             if comment['user'] and 'login' in comment['user']
         ]
@@ -869,8 +881,8 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         # PR REVIEW MESSAGE REF TABLE
 
         c_pk_source_comments = self.enrich_data_primary_keys(
-            review_msgs['insert'], self.message_table, ['created_at', 'body'],
-            ['msg_timestamp', 'msg_text']
+            review_msgs['insert'], self.message_table, ['id'],
+            ['platform_msg_id']
         )
         self.write_debug_data(c_pk_source_comments, 'c_pk_source_comments')
 
