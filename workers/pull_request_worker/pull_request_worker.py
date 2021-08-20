@@ -637,8 +637,13 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
 
         self.write_debug_data(c_pk_source_comments, 'c_pk_source_comments')
 
-        both_pk_source_comments = self.enrich_data_primary_keys(c_pk_source_comments,
-            self.pull_requests_table, ['issue_url'], ['pr_issue_url'])
+        both_pk_source_comments = self.enrich_data_primary_keys(
+            c_pk_source_comments, self.pull_request_reviews_table, ['id'],
+            ['platform_msg_id']
+        )
+
+        # both_pk_source_comments = self.enrich_data_primary_keys(c_pk_source_comments,
+        #     self.pull_requests_table, ['issue_url'], ['pr_issue_url'])
 
         self.write_debug_data(both_pk_source_comments, 'both_pk_source_comments')
 
