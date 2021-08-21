@@ -952,7 +952,9 @@ class WorkerGitInterfaceable(Worker):
             self.oauths[0]['rate_limit'] = 0
         else:
             try:
-                self.oauths[0]['rate_limit'] = int(response.headers['X-RateLimit-Remaining'])
+                # self.oauths[0]['rate_limit'] = int(response.headers['X-RateLimit-Remaining'])
+                # trying this based on this error: 2021-08-20 18:11:22,829,829ms [PID: 3173089] workers.pull_request_worker.50225 [INFO] Headers did not work, had to decrement, with error 'x-ratelimit-remaining'.
+                self.oauths[0]['rate_limit'] = int(response.headers['x-rateLimit-remaining'])
                 # self.logger.info("Recieved rate limit from headers\n")
             except Exception as e:
                 self.oauths[0]['rate_limit'] -= 1
@@ -972,7 +974,7 @@ class WorkerGitInterfaceable(Worker):
             # We will be finding oauth with the highest rate limit left out of our list of oauths
             new_oauth = self.oauths[0]
             # Endpoint to hit solely to retrieve rate limit information from headers of the response
-            url = "https://api.github.com/users/gabe-heim"
+            url = "https://api.github.com/users/sgoggins"
 
             other_oauths = self.oauths[0:] if len(self.oauths) > 1 else []
             for oauth in other_oauths:
