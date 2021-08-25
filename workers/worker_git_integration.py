@@ -954,11 +954,12 @@ class WorkerGitInterfaceable(Worker):
             try:
                 # self.oauths[0]['rate_limit'] = int(response.headers['X-RateLimit-Remaining'])
                 # trying this based on this error: 2021-08-20 18:11:22,829,829ms [PID: 3173089] workers.pull_request_worker.50225 [INFO] Headers did not work, had to decrement, with error 'x-ratelimit-remaining'.
-                self.oauths[0]['rate_limit'] = int(response.headers['x-rateLimit-remaining'])
+                self.oauths[0]['rate_limit'] = int(response.headers['X-RateLimit-Remaining'])
                 # self.logger.info("Recieved rate limit from headers\n")
             except Exception as e:
                 self.oauths[0]['rate_limit'] -= 1
                 self.logger.info(f"Headers did not work, had to decrement, with error {e}.")
+                self.logger.info(f"Headers value: {self.oauths.keys()}" )
         self.logger.info(
             f"Updated rate limit, you have: {self.oauths[0]['rate_limit']} requests remaining."
         )
