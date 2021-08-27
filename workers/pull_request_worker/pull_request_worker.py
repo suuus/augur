@@ -544,7 +544,7 @@ class GitHubPullRequestWorker(WorkerGitInterfaceable):
         try: 
             pk_source_prs = self._get_pk_source_prs()
         except Exception as e: 
-            self.logger(f"Pull Requests model failed with {e}.")
+            self.logger.info(f"Pull Requests model failed with {e}.")
 
         self.write_debug_data(pk_source_prs, 'pk_source_prs')
 
