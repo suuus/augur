@@ -37,7 +37,7 @@ class ContributorInterfaceable(WorkerGitInterfaceable):
 
         #Get the same logging dir as the facade worker.
         self.config.update({
-            'id': "workers.{}.{}".format("contributor_interface", self.config['contributor_interfaceable'])
+            'id': "workers.{}.{}".format("contributor_interface", 40003)
         })
 
         #Getting stuck here.

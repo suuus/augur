@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2016-2018 Brian Warner
+# Copyright 2016-2018 Brian Warner, 2019-2021 Brian Warner and the University of Missouri
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# SPDX-License-Identifier:  Apache-2.0
+# SPDX-License-Identifier:  MIT
 
 # Git repo maintenance
 #
