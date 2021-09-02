@@ -36,7 +36,7 @@ class ContributorInterfaceable(WorkerGitInterfaceable):
         self.config.update(self.augur_config.get_section("Logging"))
 
         #Get the same logging dir as the facade worker.
-        'port_contributor': self.augur_config.get_value('Conteributor_Interface', 'port'),
+        'port_contributor': self.augur_config.get_value('Conteributor_Interface', 'port')
 
         self.config.update({
             'id': "workers.{}.{}".format("contributor_interface",'port_contributor')
