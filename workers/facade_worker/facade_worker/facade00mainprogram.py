@@ -109,7 +109,7 @@ class FacadeWorker(Worker):
             # Catch databases which existed before database versioning
             self.current_db = -1
 
-        self.logger.info("initialed database.")
+        self.logger.info("initialized database.")
 
     def collect(self):
         """ Function to process each entry in the worker's task queue
